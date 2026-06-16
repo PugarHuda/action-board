@@ -2,7 +2,10 @@
 
 **Paste messy meeting notes → get a structured action board you actually trust.**
 
-![Action Board](docs/screenshot.png)
+![Action Board demo](docs/demo.gif)
+
+> _Extract → review/approve → organize across To Do / In Progress / Done._
+> Static shots: [full board](docs/screenshot.png) · [empty state](docs/screenshot-empty.png) · [filtered by owner](docs/screenshot-filtered.png) · [mobile](docs/screenshot-mobile.png)
 
 Action Board turns a raw brain-dump or meeting transcript into editable action-item
 cards (**task · owner · deadline · priority**) that you approve and drag across
@@ -137,9 +140,13 @@ anna-app validate --strict   # ✓ passes (schema + UI ACL + bundle linter)
 
 ## Guides in this repo
 
+- **[SUBMISSION.md](SUBMISSION.md)** — copy/paste-ready DoraHacks submission writeup
+- **[ARCHITECTURE.md](ARCHITECTURE.md)** — data flow, components, why the split, state model
 - **[DEMO.md](DEMO.md)** — 60–90s demo script, shot list, narration, submission blurb
 - **[PUBLISH.md](PUBLISH.md)** — mint Tool ID → wire it in → publish & submit (real `anna-app` commands)
+- **[CHANGELOG.md](CHANGELOG.md)** — what's built, QA fixes, known limitations
 - **CI** — `.github/workflows/ci.yml` runs validate + all tests + the mock-sampling AI check + live-harness E2E on every push
+- Regenerate screenshots + GIF: `npm run shots` (needs a running `anna-app dev`)
 
 ---
 

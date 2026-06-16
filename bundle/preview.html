@@ -71,6 +71,11 @@
         <div class="dropzone" data-status="done" role="list"></div>
       </div>
     </main>
+
+    <div id="empty" class="empty" style="display:none">
+      <p>No action items yet.</p>
+      <p class="muted">Paste notes above and hit <b>Extract</b> — the AI does the first pass, you stay the reviewer.</p>
+    </div>
   </div>
   <div class="preview-note">static preview — no Anna runtime</div>
 
@@ -100,17 +105,40 @@
   <script type="module">
     import { groupByStatus, applyView } from "./board.js";
 
-    // Seeded sample board (mirrors what the meeting-notes fixture produces).
-    const items = [
-      { task: "Finalize the launch deck and circulate by Thu", owner: "Sara", deadline: "Thu", priority: "high", status: "todo", approved: true, source: "AI" },
-      { task: "Investigate the spike in 500s on checkout", owner: "", deadline: "", priority: "high", status: "todo", approved: false, source: "AI" },
-      { task: "Review the pen-test findings before EOD Friday", owner: "priya", deadline: "EOD", priority: "medium", status: "todo", approved: false, source: "AI" },
-      { task: "Follow up with the analytics vendor about the SLA", owner: "", deadline: "", priority: "medium", status: "todo", approved: false, source: "parser" },
-      { task: "Wire up the new pricing page to the live API", owner: "Tom", deadline: "tomorrow", priority: "high", status: "doing", approved: true, source: "AI" },
-      { task: "Add retry + backoff to the payments client", owner: "Marco", deadline: "this week", priority: "medium", status: "doing", approved: false, source: "AI" },
-      { task: "Rotate the staging API keys", owner: "", deadline: "", priority: "high", status: "done", approved: true, source: "AI" },
-      { task: "Deliver the updated hero illustration", owner: "Lena", deadline: "Wed", priority: "medium", status: "done", approved: true, source: "parser" },
+    // Base seeded board (mirrors what the meeting-notes fixture produces).
+    const base = [
+      { task: "Finalize the launch deck and circulate by Thu", owner: "Sara", deadline: "Thu", priority: "high", source: "AI" },
+      { task: "Investigate the spike in 500s on checkout", owner: "", deadline: "", priority: "high", source: "AI" },
+      { task: "Review the pen-test findings before EOD Friday", owner: "priya", deadline: "EOD", priority: "medium", source: "AI" },
+      { task: "Follow up with the analytics vendor about the SLA", owner: "", deadline: "", priority: "medium", source: "parser" },
+      { task: "Wire up the new pricing page to the live API", owner: "Tom", deadline: "tomorrow", priority: "high", source: "AI" },
+      { task: "Add retry + backoff to the payments client", owner: "Marco", deadline: "this week", priority: "medium", source: "AI" },
+      { task: "Rotate the staging API keys", owner: "", deadline: "", priority: "high", source: "AI" },
+      { task: "Deliver the updated hero illustration", owner: "Lena", deadline: "Wed", priority: "medium", source: "parser" },
     ];
+
+    const params = new URLSearchParams(location.search);
+    const step = params.get("step");          // 1=empty 2=extracted 3=approved 4=distributed
+    const ownerFilter = params.get("owner") || "";
+    const sort = params.get("sort") || "priority";
+
+    // Build the item set for the requested step / state.
+    function build() {
+      if (step === "1") return [];
+      const done = ["Rotate the staging API keys", "Deliver the updated hero illustration"];
+      const doing = ["Wire up the new pricing page to the live API", "Add retry + backoff to the payments client"];
+      const approvedAt3 = ["Finalize the launch deck and circulate by Thu", "Investigate the spike in 500s on checkout"];
+      return base.map((b) => {
+        let status = "todo", approved = false;
+        if (!step || step === "4") {
+          status = done.includes(b.task) ? "done" : doing.includes(b.task) ? "doing" : "todo";
+          approved = status === "done" || b.task === "Finalize the launch deck and circulate by Thu" || b.task === "Wire up the new pricing page to the live API";
+        } else if (step === "3") {
+          approved = approvedAt3.includes(b.task);
+        }
+        return { ...b, status, approved };
+      });
+    }
 
     const $ = (s, r = document) => r.querySelector(s);
     function card(it) {
@@ -124,10 +152,16 @@
       $('[data-field="priority"]', n).value = it.priority;
       return n;
     }
-    const visible = applyView(items, { sort: "priority" });
+
+    const items = build();
+    const visible = applyView(items, { owner: ownerFilter, sort });
     for (const it of visible) $(`.dropzone[data-status="${it.status}"]`).appendChild(card(it));
     const { counts } = groupByStatus(visible);
     for (const k of ["todo", "doing", "done"]) $(`.count[data-count="${k}"]`).textContent = counts[k];
+    $("#empty").style.display = items.length ? "none" : "block";
+
+    // reflect owner filter in the select for the "filtered" screenshot
+    if (ownerFilter) { const sel = $(".tb-field select"); if (sel) { [...sel.options].forEach(o => o.selected = o.text === ownerFilter); } }
   </script>
 </body>
 </html>
