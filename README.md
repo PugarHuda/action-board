@@ -2,6 +2,8 @@
 
 **Paste messy meeting notes → get a structured action board you actually trust.**
 
+![Action Board](docs/screenshot.png)
+
 Action Board turns a raw brain-dump or meeting transcript into editable action-item
 cards (**task · owner · deadline · priority**) that you approve and drag across
 **To Do / In Progress / Done**. The AI does the first pass; the human stays the
@@ -31,6 +33,19 @@ The LLM in the conversation can also open the app directly:
 `open_app_view(view="board", payload={ notes: "<raw text>" })` → the board
 auto-extracts. (See `system_prompt_addendum` in `manifest.json`.)
 
+### Board features
+
+- **Source badges** — every card shows whether it came from the **AI** model or the
+  rule-based **parser**, so you can see what to trust at a glance.
+- **Filter by owner** + **sort each column by priority**.
+- **Export** the board to **Markdown** or **CSV** (one click).
+- **Keyboard-friendly** — `Ctrl/⌘+Enter` extracts; focus a card and use `←/→` to move
+  it across columns, `a` to approve, `Delete` to remove. ARIA roles/labels throughout.
+- **Dedupe** — re-extracting the same notes won't create duplicate cards.
+
+A static, SDK-free render of the UI lives at `bundle/preview.html` (used to produce
+the screenshot above) — open it via the dev harness to screenshot without a runtime.
+
 ### Resilience (so the demo never dies)
 
 Extraction degrades gracefully across three layers — you always get a board:
@@ -55,7 +70,8 @@ action-board/
 │   ├── index.html
 │   ├── app.js               # SDK wiring: tools / storage / chat / window + DnD + review
 │   ├── parser.js            # shared, dependency-free action-item parser (unit-tested)
-│   ├── board.js             # pure board logic: grouping, summary, dedupe-merge (unit-tested)
+│   ├── board.js             # pure board logic: grouping, summary, dedupe, sort, filter, CSV (unit-tested)
+│   ├── preview.html         # static SDK-free render of the UI (for screenshots)
 │   ├── style.css
 │   └── icon.svg
 ├── executas/
@@ -65,7 +81,7 @@ action-board/
 │   └── triage-python/       # Same contract, Python flavour (publish-ready)
 │       ├── plugin.py
 │       └── pyproject.toml
-├── tests/                   # 5 suites, 115 assertions, plain Node (no deps)
+├── tests/                   # 5 suites, 133 assertions, plain Node (no deps)
 │   ├── run-all.mjs          # aggregate runner (npm test)
 │   ├── parser.test.mjs
 │   ├── board.test.mjs       # pure board logic
@@ -114,7 +130,7 @@ anna-app validate --strict   # ✓ passes (schema + UI ACL + bundle linter)
 - ✅ **AI/sampling path** verified through the real executa runtime:
   `anna-app executa dev --invoke extract_actions --mock-sampling fixtures/mock-sampling.jsonl`
   returns `"source":"llm"` with model-parsed items (and `--no-sampling` → `"heuristic"`)
-- ✅ `npm test` → **115/115 assertions** across 5 suites
+- ✅ `npm test` → **133/133 assertions** across 5 suites
 - ⚠️ `tools.invoke` returns `not_implemented` in this MVP harness version → the UI uses
   its in-browser parser locally (see Resilience above). On the real platform `tools.invoke`
   routes to the Executa tool's AI path (verified via `executa dev` above).
@@ -129,12 +145,12 @@ anna-app validate --strict   # ✓ passes (schema + UI ACL + bundle linter)
 
 ## Tests / QA
 
-Five suites, **115 assertions, all green**. No test framework — plain Node, zero deps.
+Five suites, **133 assertions, all green**. No test framework — plain Node, zero deps.
 
 ```bash
 npm test            # runs all suites (E2E auto-skips if no harness is up)
 npm run test:parser     # 41 — in-browser parser: edge cases, adversarial input, chatter filter
-npm run test:board      # 29 — pure board logic: grouping, summary markdown, dedupe-merge, normalize
+npm run test:board      # 47 — pure board logic: grouping, summary markdown, dedupe-merge, normalize
 npm run test:contract   # 15 — Executa JSON-RPC stdio contract (describe/invoke/errors)
 npm run test:sampling   # 18 — mock-host drives the tool's LLM/sampling path + fallbacks
 npm run test:e2e        # 12 — live harness: storage/chat/window/tools.list lifecycle

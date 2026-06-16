@@ -1,7 +1,10 @@
 // Unit tests for the pure board logic (bundle/board.js).
 // Run: node tests/board.test.mjs
 
-import { normalizeItem, groupByStatus, mergeItems, buildSummaryMarkdown, STATUSES } from "../bundle/board.js";
+import {
+  normalizeItem, groupByStatus, mergeItems, buildSummaryMarkdown,
+  sortByPriority, ownersOf, applyView, buildCSV, STATUSES,
+} from "../bundle/board.js";
 
 let passed = 0, failed = 0;
 const ok = (name, cond, extra = "") => {
@@ -85,6 +88,69 @@ const mkId = () => "id" + (++n);
   const onlyTodo = buildSummaryMarkdown([{ task: "x", priority: "medium", status: "todo" }]);
   ok("summary omits empty sections", onlyTodo.includes("_To Do_") && !onlyTodo.includes("_Done_"));
   ok("empty board -> header only", buildSummaryMarkdown([]).trim() === "**Action Board summary**");
+}
+
+// --- source tagging ---
+{
+  ok("normalize keeps source", normalizeItem({ task: "x", source: "AI" }).source === "AI");
+  ok("normalize defaults source to ''", normalizeItem({ task: "x" }).source === "");
+  const r = mergeItems([], [{ task: "a" }, { task: "b" }], mkId, "AI");
+  ok("mergeItems tags new items with source", r.items.every((i) => i.source === "AI"));
+}
+
+// --- sortByPriority ---
+{
+  const sorted = sortByPriority([
+    { task: "lo", priority: "low" },
+    { task: "hi", priority: "high" },
+    { task: "me", priority: "medium" },
+  ]);
+  ok("sorts high → medium → low", sorted.map((i) => i.task).join() === "hi,me,lo");
+  ok("sortByPriority does not mutate input", (() => {
+    const a = [{ priority: "low" }, { priority: "high" }];
+    sortByPriority(a);
+    return a[0].priority === "low";
+  })());
+  ok("unknown priority sorts as medium", sortByPriority([{ task: "x", priority: "?" }, { task: "h", priority: "high" }])[0].task === "h");
+}
+
+// --- ownersOf ---
+{
+  const owners = ownersOf([
+    { owner: "Sara" }, { owner: "Tom" }, { owner: "Sara" }, { owner: "" }, {},
+  ]);
+  ok("unique, sorted, non-empty owners", owners.join() === "Sara,Tom");
+  ok("ownersOf([]) -> []", ownersOf([]).length === 0);
+}
+
+// --- applyView (filter + sort) ---
+{
+  const data = [
+    { task: "a", owner: "Sara", priority: "low", status: "todo" },
+    { task: "b", owner: "Tom", priority: "high", status: "todo" },
+    { task: "c", owner: "Sara", priority: "high", status: "doing" },
+  ];
+  ok("filter by owner", applyView(data, { owner: "Sara" }).length === 2);
+  ok("no filter returns all", applyView(data, {}).length === 3);
+  ok("sort=priority orders by priority",
+    applyView(data, { sort: "priority" }).map((i) => i.task).join() === "b,c,a");
+  ok("filter + sort compose",
+    applyView(data, { owner: "Sara", sort: "priority" }).map((i) => i.task).join() === "c,a");
+  ok("applyView null-safe", applyView(null, null).length === 0);
+}
+
+// --- buildCSV ---
+{
+  const csv = buildCSV([
+    { task: "Send the deck", owner: "Sara", deadline: "Fri", priority: "high", status: "todo", approved: false },
+    { task: 'Quote "X", now', owner: "", deadline: "", priority: "medium", status: "done", approved: true },
+  ]);
+  const lines = csv.split("\n");
+  ok("CSV has header row", lines[0] === "task,owner,deadline,priority,status,approved");
+  ok("CSV row count = items + header", lines.length === 3);
+  ok("CSV escapes commas/quotes", lines[2].includes('"Quote ""X"", now"'));
+  ok("CSV maps approved boolean to yes/no", lines[1].endsWith(",no") && lines[2].endsWith(",yes"));
+  ok("buildCSV([]) -> header only", buildCSV([]).split("\n").length === 1);
 }
 
 // --- STATUSES export sanity ---

@@ -2,3 +2,5 @@
 # Critical for the bash `run:` blocks in .github/workflows/ci.yml.
 * text=auto eol=lf
 *.svg text eol=lf
+*.png binary
+*.jpg binary

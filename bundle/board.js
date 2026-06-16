@@ -6,6 +6,7 @@ import { itemKey } from "./parser.js";
 
 export const STATUSES = ["todo", "doing", "done"];
 const PRIORITIES = ["high", "medium", "low"];
+export const PRIORITY_RANK = { high: 0, medium: 1, low: 2 };
 
 // Coerce a raw/extracted/persisted record into a well-formed board item.
 export function normalizeItem(raw, makeId) {
@@ -18,6 +19,7 @@ export function normalizeItem(raw, makeId) {
     priority: PRIORITIES.includes(r.priority) ? r.priority : "medium",
     status: STATUSES.includes(r.status) ? r.status : "todo",
     approved: !!r.approved,
+    source: typeof r.source === "string" ? r.source : "",
   };
 }
 
@@ -36,12 +38,12 @@ export function groupByStatus(items) {
 // Append freshly-extracted items to the board, skipping duplicates (by task
 // text) and empties. New items land in "todo", unapproved. Returns the new
 // array plus how many were added / skipped as duplicates.
-export function mergeItems(existing, found, makeId) {
+export function mergeItems(existing, found, makeId, source = "") {
   const base = Array.isArray(existing) ? existing.slice() : [];
   const seen = new Set(base.map(itemKey));
   let added = 0, dupes = 0;
   for (const raw of found || []) {
-    const it = normalizeItem({ ...raw, status: "todo", approved: false }, makeId);
+    const it = normalizeItem({ ...raw, status: "todo", approved: false, source }, makeId);
     if (!it.task) continue;
     const k = itemKey(it);
     if (seen.has(k)) { dupes++; continue; }
@@ -50,6 +52,43 @@ export function mergeItems(existing, found, makeId) {
     added++;
   }
   return { items: base, added, dupes };
+}
+
+// --- view helpers (filter + sort) -----------------------------------------
+
+export function sortByPriority(items) {
+  return (items || []).slice().sort(
+    (a, b) => (PRIORITY_RANK[a && a.priority] ?? 1) - (PRIORITY_RANK[b && b.priority] ?? 1)
+  );
+}
+
+export function ownersOf(items) {
+  const set = new Set();
+  for (const it of items || []) if (it && it.owner) set.add(it.owner);
+  return [...set].sort((a, b) => a.localeCompare(b));
+}
+
+// Filter by owner and optionally sort by priority. Pure — render() consumes it.
+export function applyView(items, view) {
+  const v = view || {};
+  let out = Array.isArray(items) ? items.slice() : [];
+  if (v.owner) out = out.filter((it) => it.owner === v.owner);
+  if (v.sort === "priority") out = sortByPriority(out);
+  return out;
+}
+
+// --- export ----------------------------------------------------------------
+
+export function buildCSV(items) {
+  const esc = (s) => {
+    const t = String(s == null ? "" : s);
+    return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+  };
+  const rows = [["task", "owner", "deadline", "priority", "status", "approved"]];
+  for (const it of items || []) {
+    rows.push([it.task, it.owner, it.deadline, it.priority, it.status, it.approved ? "yes" : "no"]);
+  }
+  return rows.map((r) => r.map(esc).join(",")).join("\n");
 }
 
 // Build the markdown summary posted back into the conversation.

@@ -4,7 +4,10 @@
 
 import { AnnaAppRuntime } from "/static/anna-apps/_sdk/latest/index.js";
 import { localExtract } from "./parser.js";
-import { groupByStatus, buildSummaryMarkdown, mergeItems, normalizeItem, STATUSES } from "./board.js";
+import {
+  groupByStatus, buildSummaryMarkdown, mergeItems, normalizeItem,
+  applyView, ownersOf, buildCSV, STATUSES,
+} from "./board.js";
 
 // Server-minted ID is rewritten on publish. tool-dev-* works in `anna-app dev`.
 const TOOL_ID = "tool-dev-action-triage";
@@ -13,8 +16,11 @@ const STORE_KEY = "board.items";
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
+const STATUS_LABEL = { todo: "To Do", doing: "In Progress", done: "Done" };
+
 let anna = null;
-let items = []; // [{ id, task, owner, deadline, priority, status, approved }]
+let items = []; // [{ id, task, owner, deadline, priority, status, approved, source }]
+let view = { owner: "", sort: "none" }; // filter + sort state
 
 // ---- id helper (browser runtime; Date/Math allowed here) -------------------
 function uid() {
@@ -61,8 +67,8 @@ async function extract() {
 
   try {
     const { found, source } = await getItems(notes);
-    // Merge: dedupe by task text so re-extracting is safe.
-    const { items: merged, added, dupes } = mergeItems(items, found, uid);
+    // Merge: dedupe by task text so re-extracting is safe. Tag each item's source.
+    const { items: merged, added, dupes } = mergeItems(items, found, uid, source);
     items = merged;
     if (!added) {
       flashHint(found.length ? "Those items are already on the board." : "No action items detected. Try clearer notes.");
@@ -92,12 +98,12 @@ async function getItems(notes) {
     const data = (out && out.data) || out;
     const found = (data && data.items) || [];
     if (found.length) {
-      return { found, source: data.source === "heuristic" ? "tool · offline parser" : "AI" };
+      return { found, source: data.source === "heuristic" ? "parser" : "AI" };
     }
     throw new Error("tool returned no items");
   } catch (e) {
     console.warn("tools.invoke unavailable → in-browser parser:", e && e.message);
-    return { found: localExtract(notes), source: "in-browser parser" };
+    return { found: localExtract(notes), source: "parser" };
   }
 }
 
@@ -111,10 +117,12 @@ function flashHint(msg) {
 
 // ---- rendering -------------------------------------------------------------
 function render() {
+  syncOwnerFilter();
+  const visible = applyView(items, view);
   $$(".dropzone").forEach((z) => (z.innerHTML = ""));
-  const { counts } = groupByStatus(items);
+  const { counts } = groupByStatus(visible);
 
-  for (const it of items) {
+  for (const it of visible) {
     const status = STATUSES.includes(it.status) ? it.status : "todo";
     const zone = $(`.dropzone[data-status="${status}"]`);
     if (zone) zone.appendChild(buildCard(it));
@@ -126,7 +134,30 @@ function render() {
   }
 
   $("#empty").style.display = items.length ? "none" : "block";
-  updateTitle(counts);
+  updateTitle(groupByStatus(items).counts); // window title reflects the whole board
+}
+
+// Keep the owner <select> in sync with the owners currently on the board.
+function syncOwnerFilter() {
+  const sel = $("#ownerFilter");
+  if (!sel) return;
+  const owners = ownersOf(items);
+  const current = view.owner;
+  sel.innerHTML = '<option value="">Everyone</option>' +
+    owners.map((o) => `<option value="${o}">${o}</option>`).join("");
+  // keep selection if that owner still exists, else reset to all
+  sel.value = owners.includes(current) ? current : "";
+  if (sel.value !== current) view.owner = sel.value;
+}
+
+// Move a card to a new status (shared by drag-drop and keyboard).
+function moveItem(id, status) {
+  const it = items.find((x) => x.id === id);
+  if (!it || !STATUSES.includes(status)) return;
+  it.status = status;
+  if (status === "done") it.approved = true;
+  save();
+  render();
 }
 
 function updateTitle(counts) {
@@ -140,11 +171,24 @@ function buildCard(it) {
   node.dataset.id = it.id;
   if (it.approved) node.classList.add("approved");
 
+  node.setAttribute("aria-label", `${it.priority} priority: ${it.task}`);
+
   const prio = $(".prio", node);
   prio.dataset.prio = it.priority;
   prio.textContent = it.priority;
 
-  $('[data-field="task"]', node).textContent = it.task;
+  const src = $(".src", node);
+  if (src && it.source) {
+    src.textContent = it.source;
+    src.dataset.src = it.source;
+    src.hidden = false;
+    src.title = it.source === "AI" ? "Extracted by the AI model" : "Extracted by the rule-based parser";
+  }
+
+  const taskEl = $('[data-field="task"]', node);
+  taskEl.textContent = it.task;
+  taskEl.setAttribute("role", "textbox");
+  taskEl.setAttribute("aria-label", "Task");
   $('[data-field="owner"]', node).textContent = it.owner || "";
   $('[data-field="deadline"]', node).textContent = it.deadline || "";
   $('[data-field="priority"]', node).value = it.priority;
@@ -184,6 +228,21 @@ function buildCard(it) {
   });
   node.addEventListener("dragend", () => node.classList.remove("dragging"));
 
+  // keyboard (only when the card itself is focused, not an inner editable field)
+  node.addEventListener("keydown", (e) => {
+    if (e.target !== node) return;
+    const i = STATUSES.indexOf(it.status === "doing" ? "doing" : it.status);
+    if (e.key === "ArrowRight") { e.preventDefault(); moveItem(it.id, STATUSES[Math.min(i + 1, 2)]); }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); moveItem(it.id, STATUSES[Math.max(i - 1, 0)]); }
+    else if (e.key === "a" || e.key === "A") {
+      e.preventDefault();
+      it.approved = !it.approved; node.classList.toggle("approved", it.approved); save();
+    } else if (e.key === "Delete" || e.key === "Backspace") {
+      e.preventDefault();
+      items = items.filter((x) => x.id !== it.id); save(); render();
+    }
+  });
+
   return node;
 }
 
@@ -197,14 +256,7 @@ function wireDropzones() {
     zone.addEventListener("drop", (e) => {
       e.preventDefault();
       zone.classList.remove("over");
-      const id = e.dataTransfer.getData("text/plain");
-      const it = items.find((x) => x.id === id);
-      if (it) {
-        it.status = zone.dataset.status;
-        if (it.status === "done") it.approved = true;
-        save();
-        render();
-      }
+      moveItem(e.dataTransfer.getData("text/plain"), zone.dataset.status);
     });
   });
 }
@@ -237,6 +289,38 @@ async function sendSummary() {
   }
 }
 
+// ---- clear + export --------------------------------------------------------
+async function clearBoard() {
+  if (!items.length) return;
+  if (typeof confirm === "function" && !confirm("Remove all cards from the board?")) return;
+  items = [];
+  view.owner = "";
+  await save();
+  render();
+  flashHint("Board cleared.");
+}
+
+// Download a file from the iframe. May be restricted by the sandbox; if so,
+// fall back to copying the content to the clipboard.
+async function download(filename, text, mime) {
+  try {
+    const blob = new Blob([text], { type: mime });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    flashHint(`Exported ${filename}`);
+  } catch (e) {
+    try {
+      await navigator.clipboard.writeText(text);
+      flashHint(`Download blocked by sandbox — copied ${filename} contents to clipboard.`);
+    } catch (_) {
+      flashHint("Export failed in this runtime.");
+    }
+  }
+}
+
 // ---- boot ------------------------------------------------------------------
 async function boot() {
   anna = await AnnaAppRuntime.connect();
@@ -248,6 +332,26 @@ async function boot() {
 
   $("#extractBtn").addEventListener("click", extract);
   $("#summaryBtn").addEventListener("click", sendSummary);
+  $("#clearBtn").addEventListener("click", clearBoard);
+  $("#exportMdBtn").addEventListener("click", () => download("action-board.md", buildSummaryMarkdown(items), "text/markdown"));
+  $("#exportCsvBtn").addEventListener("click", () => download("action-board.csv", buildCSV(items), "text/csv"));
+
+  // owner filter
+  $("#ownerFilter").addEventListener("change", (e) => { view.owner = e.target.value; render(); });
+
+  // priority sort toggle
+  $("#sortBtn").addEventListener("click", (e) => {
+    view.sort = view.sort === "priority" ? "none" : "priority";
+    const on = view.sort === "priority";
+    e.currentTarget.setAttribute("aria-pressed", String(on));
+    e.currentTarget.classList.toggle("active", on);
+    render();
+  });
+
+  // Ctrl/Cmd+Enter in the notes box runs extraction.
+  $("#notes").addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); extract(); }
+  });
 
   // If the LLM opened this view with notes, prefill and auto-extract.
   const payload = anna.entryPayload;

@@ -31,22 +31,40 @@ e.g.
 - nice to have: dark mode someday"></textarea>
       <div class="intake-actions">
         <button id="extractBtn" class="btn primary">✦ Extract action items</button>
-        <span id="extractHint" class="hint"></span>
+        <span class="kbd-hint" aria-hidden="true">Ctrl/⌘ + Enter</span>
+        <span id="extractHint" class="hint" role="status" aria-live="polite"></span>
+      </div>
+    </section>
+
+    <section class="toolbar" aria-label="Board controls">
+      <div class="toolbar-left">
+        <label class="tb-field">Owner
+          <select id="ownerFilter" aria-label="Filter cards by owner">
+            <option value="">Everyone</option>
+          </select>
+        </label>
+        <button id="sortBtn" class="btn ghost sm" aria-pressed="false"
+                title="Sort each column by priority">↓ Priority</button>
+      </div>
+      <div class="toolbar-right">
+        <button id="exportMdBtn" class="btn ghost sm" title="Download board as Markdown">⬇ .md</button>
+        <button id="exportCsvBtn" class="btn ghost sm" title="Download board as CSV">⬇ .csv</button>
+        <button id="clearBtn" class="btn ghost sm danger" title="Remove all cards">Clear</button>
       </div>
     </section>
 
     <main class="board" id="board">
       <div class="column" data-status="todo">
         <div class="col-head"><span>To Do</span><span class="count" data-count="todo">0</span></div>
-        <div class="dropzone" data-status="todo"></div>
+        <div class="dropzone" data-status="todo" role="list" aria-label="To Do"></div>
       </div>
       <div class="column" data-status="doing">
         <div class="col-head"><span>In Progress</span><span class="count" data-count="doing">0</span></div>
-        <div class="dropzone" data-status="doing"></div>
+        <div class="dropzone" data-status="doing" role="list" aria-label="In Progress"></div>
       </div>
       <div class="column" data-status="done">
         <div class="col-head"><span>Done</span><span class="count" data-count="done">0</span></div>
-        <div class="dropzone" data-status="done"></div>
+        <div class="dropzone" data-status="done" role="list" aria-label="Done"></div>
       </div>
     </main>
 
@@ -57,12 +75,15 @@ e.g.
   </div>
 
   <template id="cardTpl">
-    <article class="card" draggable="true">
+    <article class="card" draggable="true" tabindex="0" role="listitem">
       <div class="card-top">
-        <span class="prio" data-prio></span>
+        <div class="card-tags">
+          <span class="prio" data-prio></span>
+          <span class="src" data-src hidden></span>
+        </div>
         <div class="card-controls">
-          <button class="icon approve" title="Approve">✓</button>
-          <button class="icon del" title="Delete">✕</button>
+          <button class="icon approve" title="Approve" aria-label="Approve">✓</button>
+          <button class="icon del" title="Delete" aria-label="Delete">✕</button>
         </div>
       </div>
       <div class="task" contenteditable="true" data-field="task"></div>

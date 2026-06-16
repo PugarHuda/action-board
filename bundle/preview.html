@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Action Board — Preview (static, no SDK)</title>
+  <link rel="stylesheet" href="./style.css" />
+  <style>
+    /* preview only: give the app a fixed, screenshot-friendly frame */
+    html, body { background: #0a0b0e; }
+    #app { max-width: 1100px; margin: 0 auto; height: 100vh; }
+    .preview-note {
+      position: fixed; bottom: 8px; right: 12px; font-size: 11px; color: #5a6070;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo">◆</span>
+        <div>
+          <h1>Action Board</h1>
+          <p class="sub ok">Added 11 items (AI). Review & approve →</p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn ghost">↗ Send summary to chat</button>
+      </div>
+    </header>
+
+    <section class="intake">
+      <textarea id="notes" placeholder="Paste raw meeting notes…">Product + Eng weekly sync — raw notes
+- @Sara to finalize the launch deck by Thu, urgent
+- Tom to wire up the new pricing page tomorrow
+- investigate the spike in 500s on checkout, p1
+- we shipped the search rewrite (FYI)
+…</textarea>
+      <div class="intake-actions">
+        <button class="btn primary">✦ Extract action items</button>
+        <span class="kbd-hint">Ctrl/⌘ + Enter</span>
+        <span class="hint">11 items extracted · status updates skipped</span>
+      </div>
+    </section>
+
+    <section class="toolbar" aria-label="Board controls">
+      <div class="toolbar-left">
+        <label class="tb-field">Owner
+          <select><option>Everyone</option><option>Sara</option><option>Tom</option></select>
+        </label>
+        <button class="btn ghost sm active" aria-pressed="true">↓ Priority</button>
+      </div>
+      <div class="toolbar-right">
+        <button class="btn ghost sm">⬇ .md</button>
+        <button class="btn ghost sm">⬇ .csv</button>
+        <button class="btn ghost sm danger">Clear</button>
+      </div>
+    </section>
+
+    <main class="board" id="board">
+      <div class="column" data-status="todo">
+        <div class="col-head"><span>To Do</span><span class="count" data-count="todo">0</span></div>
+        <div class="dropzone" data-status="todo" role="list"></div>
+      </div>
+      <div class="column" data-status="doing">
+        <div class="col-head"><span>In Progress</span><span class="count" data-count="doing">0</span></div>
+        <div class="dropzone" data-status="doing" role="list"></div>
+      </div>
+      <div class="column" data-status="done">
+        <div class="col-head"><span>Done</span><span class="count" data-count="done">0</span></div>
+        <div class="dropzone" data-status="done" role="list"></div>
+      </div>
+    </main>
+  </div>
+  <div class="preview-note">static preview — no Anna runtime</div>
+
+  <template id="cardTpl">
+    <article class="card" draggable="true" tabindex="0" role="listitem">
+      <div class="card-top">
+        <div class="card-tags">
+          <span class="prio" data-prio></span>
+          <span class="src" data-src hidden></span>
+        </div>
+        <div class="card-controls">
+          <button class="icon approve" aria-label="Approve">✓</button>
+          <button class="icon del" aria-label="Delete">✕</button>
+        </div>
+      </div>
+      <div class="task" data-field="task"></div>
+      <div class="meta">
+        <label>👤 <span class="owner" data-field="owner"></span></label>
+        <label>📅 <span class="deadline" data-field="deadline"></span></label>
+        <select class="prio-select" data-field="priority">
+          <option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option>
+        </select>
+      </div>
+    </article>
+  </template>
+
+  <script type="module">
+    import { groupByStatus, applyView } from "./board.js";
+
+    // Seeded sample board (mirrors what the meeting-notes fixture produces).
+    const items = [
+      { task: "Finalize the launch deck and circulate by Thu", owner: "Sara", deadline: "Thu", priority: "high", status: "todo", approved: true, source: "AI" },
+      { task: "Investigate the spike in 500s on checkout", owner: "", deadline: "", priority: "high", status: "todo", approved: false, source: "AI" },
+      { task: "Review the pen-test findings before EOD Friday", owner: "priya", deadline: "EOD", priority: "medium", status: "todo", approved: false, source: "AI" },
+      { task: "Follow up with the analytics vendor about the SLA", owner: "", deadline: "", priority: "medium", status: "todo", approved: false, source: "parser" },
+      { task: "Wire up the new pricing page to the live API", owner: "Tom", deadline: "tomorrow", priority: "high", status: "doing", approved: true, source: "AI" },
+      { task: "Add retry + backoff to the payments client", owner: "Marco", deadline: "this week", priority: "medium", status: "doing", approved: false, source: "AI" },
+      { task: "Rotate the staging API keys", owner: "", deadline: "", priority: "high", status: "done", approved: true, source: "AI" },
+      { task: "Deliver the updated hero illustration", owner: "Lena", deadline: "Wed", priority: "medium", status: "done", approved: true, source: "parser" },
+    ];
+
+    const $ = (s, r = document) => r.querySelector(s);
+    function card(it) {
+      const n = $("#cardTpl").content.firstElementChild.cloneNode(true);
+      if (it.approved) n.classList.add("approved");
+      const p = $(".prio", n); p.dataset.prio = it.priority; p.textContent = it.priority;
+      const s = $(".src", n); if (it.source) { s.textContent = it.source; s.dataset.src = it.source; s.hidden = false; }
+      $('[data-field="task"]', n).textContent = it.task;
+      $('[data-field="owner"]', n).textContent = it.owner || "—";
+      $('[data-field="deadline"]', n).textContent = it.deadline || "—";
+      $('[data-field="priority"]', n).value = it.priority;
+      return n;
+    }
+    const visible = applyView(items, { sort: "priority" });
+    for (const it of visible) $(`.dropzone[data-status="${it.status}"]`).appendChild(card(it));
+    const { counts } = groupByStatus(visible);
+    for (const k of ["todo", "doing", "done"]) $(`.count[data-count="${k}"]`).textContent = counts[k];
+  </script>
+</body>
+</html>
