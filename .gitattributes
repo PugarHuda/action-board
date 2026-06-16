@@ -1,0 +1,4 @@
+# Normalize all text to LF in the repo so CI (Linux) gets LF-terminated files.
+# Critical for the bash `run:` blocks in .github/workflows/ci.yml.
+* text=auto eol=lf
+*.svg text eol=lf
