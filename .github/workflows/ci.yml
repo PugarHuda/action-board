@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install uv (needed by anna-app dev / executa dev)
+        uses: astral-sh/setup-uv@v6
+
+      - name: Install Anna CLI
+        run: npm i -g @anna-ai/cli
+
+      - name: Validate manifest + bundle (strict)
+        run: anna-app validate --strict
+
+      - name: Run test suites (unit · contract · sampling; e2e auto-skips)
+        run: npm test
+
+      - name: AI path — run the tool through the real executa runtime (mock sampling)
+        run: |
+          out=$(anna-app executa dev --dir ./executas/triage-node \
+            --invoke extract_actions \
+            --args '{"notes":"- Sara: send the deck\n- fix the login bug"}' \
+            --mock-sampling ./fixtures/mock-sampling.jsonl --json)
+          echo "$out"
+          echo "$out" | grep -q '"source":"llm"' || { echo "::error::expected source=llm (sampling path)"; exit 1; }
+          echo "$out" | grep -q 'LLM-PARSED' || { echo "::error::tool did not parse the LLM response"; exit 1; }
+
+      - name: E2E — live harness lifecycle (storage/chat/window/tools)
+        run: |
+          anna-app dev --no-llm --port 5180 > /tmp/harness.log 2>&1 &
+          for i in $(seq 1 40); do
+            [ "$(curl -s -o /dev/null -w '%{http_code}' http://localhost:5180/ 2>/dev/null)" = "200" ] && break
+            sleep 1
+          done
+          npm run test:e2e
+          cat /tmp/harness.log || true

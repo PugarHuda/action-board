@@ -1,0 +1,26 @@
+Product + Eng weekly sync — 16 Jun (raw notes)
+
+Attendees: Sara (PM), Tom (FE), Priya (Sec), Marco (BE), Lena (Design)
+
+Launch
+- @Sara to finalize the launch deck and circulate by Thu, urgent
+- Lena will deliver the updated hero illustration by Wed
+- we agreed to push the public announcement to next Tuesday (FYI, no action)
+- Tom to wire up the new pricing page to the live API tomorrow
+
+Bugs / reliability
+- investigate the spike in 500s on the checkout endpoint, p1
+- Marco will add retry + backoff to the payments client this week
+- the search rewrite shipped last Friday and is stable (FYI)
+- fix the mobile login redirect loop, asap
+
+Security
+- @priya review the pen-test findings before EOD Friday
+- rotate the staging API keys, blocker for the audit
+- nice to have: add 2FA for admin accounts someday
+
+Misc
+- schedule the Q3 planning offsite for the first week of July
+- great job everyone on the migration last sprint!
+- remember to fill in your PTO calendars
+- follow up with the analytics vendor about the dashboard SLA

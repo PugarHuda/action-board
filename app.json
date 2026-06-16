@@ -1,0 +1,10 @@
+{
+  "slug": "action-board",
+  "name": "Action Board",
+  "tagline": "Paste messy meeting notes. Get an action board you actually trust.",
+  "description": "Action Board turns raw meeting notes and brain-dumps into structured, editable action items — task, owner, deadline, and priority — that show up as cards you can approve and drag across To Do / In Progress / Done. The AI does the first pass; you stay the reviewer. Your board is saved automatically and you can push a clean summary back into the conversation with one click.\n\nAI-native, not a chatbot: the assistant participates inside the workflow (extracting structure, updating the board) while the human keeps final say through approve / edit / move.",
+  "categories": ["productivity", "developer-tools", "workflows"],
+  "icon": "bundle/icon.svg",
+  "author": "Hackathon Submission",
+  "homepage": "https://anna.partners/developers"
+}

@@ -1,0 +1,11 @@
+Weekly product sync — 16 Jun
+
+- @Sara to send the revised launch deck by Fri, urgent
+- Tom will fix the login redirect bug tomorrow
+- follow up with the payments vendor about the new pricing tiers
+- design needs to share the updated onboarding mockups this week
+- we shipped the search rewrite, no further action (FYI)
+- investigate the spike in 500s on the API, p1
+- nice to have: dark mode, someday
+- Schedule the Q3 planning offsite next week
+- @priya review the security audit findings before EOD

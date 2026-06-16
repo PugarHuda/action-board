@@ -1,0 +1,9 @@
+{
+  "name": "action-triage",
+  "version": "0.1.0",
+  "description": "Anna Executa tool: extract structured action items from raw notes",
+  "type": "commonjs",
+  "bin": { "action-triage": "plugin.js" },
+  "scripts": { "start": "node plugin.js" },
+  "engines": { "node": ">=18" }
+}

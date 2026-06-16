@@ -1,0 +1,13 @@
+ok brain dump before i forget everything 🧠
+
+- email the design contractor about the invoice, urgent they keep pinging me
+- @dan can you review my PR for the auth refactor today
+- need to update the onboarding docs, they're super out of date
+- book the team lunch for friday
+- call the bank about the corporate card limit tomorrow
+- lol that meeting could've been an email
+- prepare slides for the board update next week
+- check why the nightly backup failed last night, p1
+- someday: migrate the old wiki to notion
+- ship the dark mode toggle, finally
+- thanks again to whoever fixed the CI flakiness 🙏

@@ -1,0 +1,1 @@
+{"ns":"sampling","method":"createMessage","result":{"role":"assistant","content":{"type":"text","text":"[{\"task\":\"LLM-PARSED send the deck\",\"owner\":\"Sara\",\"deadline\":\"Fri\",\"priority\":\"high\"},{\"task\":\"LLM-PARSED fix the login bug\",\"owner\":\"\",\"deadline\":\"\",\"priority\":\"medium\"}]"},"model":"mock-model","stopReason":"endTurn"}}

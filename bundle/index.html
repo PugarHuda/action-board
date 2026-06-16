@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Action Board</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="logo">◆</span>
+        <div>
+          <h1>Action Board</h1>
+          <p class="sub" id="status">Connecting…</p>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <button id="summaryBtn" class="btn ghost" title="Post a summary into the chat">↗ Send summary to chat</button>
+      </div>
+    </header>
+
+    <section class="intake">
+      <textarea id="notes" placeholder="Paste raw meeting notes or a brain-dump here…
+
+e.g.
+- @Sara to send the revised deck by Fri, urgent
+- follow up with vendor about pricing
+- Tom will fix the login bug tomorrow
+- nice to have: dark mode someday"></textarea>
+      <div class="intake-actions">
+        <button id="extractBtn" class="btn primary">✦ Extract action items</button>
+        <span id="extractHint" class="hint"></span>
+      </div>
+    </section>
+
+    <main class="board" id="board">
+      <div class="column" data-status="todo">
+        <div class="col-head"><span>To Do</span><span class="count" data-count="todo">0</span></div>
+        <div class="dropzone" data-status="todo"></div>
+      </div>
+      <div class="column" data-status="doing">
+        <div class="col-head"><span>In Progress</span><span class="count" data-count="doing">0</span></div>
+        <div class="dropzone" data-status="doing"></div>
+      </div>
+      <div class="column" data-status="done">
+        <div class="col-head"><span>Done</span><span class="count" data-count="done">0</span></div>
+        <div class="dropzone" data-status="done"></div>
+      </div>
+    </main>
+
+    <div id="empty" class="empty">
+      <p>No action items yet.</p>
+      <p class="muted">Paste notes above and hit <b>Extract</b> — the AI does the first pass, you stay the reviewer.</p>
+    </div>
+  </div>
+
+  <template id="cardTpl">
+    <article class="card" draggable="true">
+      <div class="card-top">
+        <span class="prio" data-prio></span>
+        <div class="card-controls">
+          <button class="icon approve" title="Approve">✓</button>
+          <button class="icon del" title="Delete">✕</button>
+        </div>
+      </div>
+      <div class="task" contenteditable="true" data-field="task"></div>
+      <div class="meta">
+        <label>👤 <span class="owner" contenteditable="true" data-field="owner"></span></label>
+        <label>📅 <span class="deadline" contenteditable="true" data-field="deadline"></span></label>
+        <select class="prio-select" data-field="priority">
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
+      </div>
+    </article>
+  </template>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
