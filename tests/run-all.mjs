@@ -11,6 +11,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const SUITES = [
   ["parser (unit)", "parser.test.mjs"],
+  ["board logic (unit)", "board.test.mjs"],
   ["executa stdio contract", "replay.mjs"],
   ["sampling / mock-host", "mock-host.test.mjs"],
   ["harness E2E (auto-skips if down)", "e2e-harness.test.mjs"],

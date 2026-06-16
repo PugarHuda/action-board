@@ -3,7 +3,8 @@
 // chat (push summary back), window (title). Human-in-the-loop review lives here.
 
 import { AnnaAppRuntime } from "/static/anna-apps/_sdk/latest/index.js";
-import { localExtract, itemKey } from "./parser.js";
+import { localExtract } from "./parser.js";
+import { groupByStatus, buildSummaryMarkdown, mergeItems, normalizeItem, STATUSES } from "./board.js";
 
 // Server-minted ID is rewritten on publish. tool-dev-* works in `anna-app dev`.
 const TOOL_ID = "tool-dev-action-triage";
@@ -38,8 +39,9 @@ async function save() {
 async function load() {
   try {
     const res = await anna.storage.get({ key: STORE_KEY });
-    // Some runtimes return {value, exists}; others just {value}. Accept either.
-    if (res && Array.isArray(res.value)) items = res.value;
+    // Some runtimes return {value, exists}; others just {value}. Accept either,
+    // and normalize each record so corrupted/partial storage can't break render.
+    if (res && Array.isArray(res.value)) items = res.value.map((v) => normalizeItem(v, uid));
   } catch (e) {
     console.warn("storage.get failed", e);
   }
@@ -59,27 +61,12 @@ async function extract() {
 
   try {
     const { found, source } = await getItems(notes);
-    // Skip items already on the board (same task text) so re-extracting is safe.
-    const seen = new Set(items.map(itemKey));
-    let added = 0;
-    for (const it of found) {
-      if (seen.has(itemKey(it))) continue;
-      seen.add(itemKey(it));
-      items.push({
-        id: uid(),
-        task: it.task || "",
-        owner: it.owner || "",
-        deadline: it.deadline || "",
-        priority: it.priority || "medium",
-        status: "todo",
-        approved: false,
-      });
-      added++;
-    }
+    // Merge: dedupe by task text so re-extracting is safe.
+    const { items: merged, added, dupes } = mergeItems(items, found, uid);
+    items = merged;
     if (!added) {
       flashHint(found.length ? "Those items are already on the board." : "No action items detected. Try clearer notes.");
     } else {
-      const dupes = found.length - added;
       flashHint(`Added ${added} item${added > 1 ? "s" : ""} (${source})${dupes ? `, skipped ${dupes} duplicate${dupes > 1 ? "s" : ""}` : ""}. Review & approve →`);
       $("#notes").value = "";
       await save();
@@ -125,18 +112,17 @@ function flashHint(msg) {
 // ---- rendering -------------------------------------------------------------
 function render() {
   $$(".dropzone").forEach((z) => (z.innerHTML = ""));
-  const counts = { todo: 0, doing: 0, done: 0 };
+  const { counts } = groupByStatus(items);
 
   for (const it of items) {
-    const status = it.status || "todo";
-    counts[status] = (counts[status] || 0) + 1;
+    const status = STATUSES.includes(it.status) ? it.status : "todo";
     const zone = $(`.dropzone[data-status="${status}"]`);
     if (zone) zone.appendChild(buildCard(it));
   }
 
-  for (const s of ["todo", "doing", "done"]) {
+  for (const s of STATUSES) {
     const c = $(`.count[data-count="${s}"]`);
-    if (c) c.textContent = counts[s] || 0;
+    if (c) c.textContent = counts[s];
   }
 
   $("#empty").style.display = items.length ? "none" : "block";
@@ -144,9 +130,8 @@ function render() {
 }
 
 function updateTitle(counts) {
-  const open = (counts.todo || 0) + (counts.doing || 0);
   try {
-    anna.window.set_title(`Action Board · ${open} open · ${counts.done || 0} done`);
+    anna.window.set_title(`Action Board · ${counts.open} open · ${counts.done} done`);
   } catch (_) {}
 }
 
@@ -230,19 +215,7 @@ async function sendSummary() {
     flashHint("Nothing to summarize yet.");
     return;
   }
-  const byStatus = { todo: [], doing: [], done: [] };
-  for (const it of items) (byStatus[it.status] || byStatus.todo).push(it);
-
-  const line = (it) =>
-    `• ${it.task}` +
-    (it.owner ? ` — @${it.owner}` : "") +
-    (it.deadline ? ` (${it.deadline})` : "") +
-    ` [${it.priority}]`;
-
-  let md = "**Action Board summary**\n";
-  if (byStatus.todo.length) md += `\n_To Do_\n${byStatus.todo.map(line).join("\n")}\n`;
-  if (byStatus.doing.length) md += `\n_In Progress_\n${byStatus.doing.map(line).join("\n")}\n`;
-  if (byStatus.done.length) md += `\n_Done_\n${byStatus.done.map(line).join("\n")}\n`;
+  const md = buildSummaryMarkdown(items);
 
   try {
     // Structured artifact (durable) + a readable message.

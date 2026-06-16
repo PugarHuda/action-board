@@ -55,6 +55,7 @@ action-board/
 │   ├── index.html
 │   ├── app.js               # SDK wiring: tools / storage / chat / window + DnD + review
 │   ├── parser.js            # shared, dependency-free action-item parser (unit-tested)
+│   ├── board.js             # pure board logic: grouping, summary, dedupe-merge (unit-tested)
 │   ├── style.css
 │   └── icon.svg
 ├── executas/
@@ -64,9 +65,10 @@ action-board/
 │   └── triage-python/       # Same contract, Python flavour (publish-ready)
 │       ├── plugin.py
 │       └── pyproject.toml
-├── tests/                   # 4 suites, 76 assertions, plain Node (no deps)
+├── tests/                   # 5 suites, 115 assertions, plain Node (no deps)
 │   ├── run-all.mjs          # aggregate runner (npm test)
 │   ├── parser.test.mjs
+│   ├── board.test.mjs       # pure board logic
 │   ├── replay.mjs           # stdio contract
 │   ├── mock-host.test.mjs   # LLM / sampling path
 │   └── e2e-harness.test.mjs # live harness lifecycle
@@ -112,7 +114,7 @@ anna-app validate --strict   # ✓ passes (schema + UI ACL + bundle linter)
 - ✅ **AI/sampling path** verified through the real executa runtime:
   `anna-app executa dev --invoke extract_actions --mock-sampling fixtures/mock-sampling.jsonl`
   returns `"source":"llm"` with model-parsed items (and `--no-sampling` → `"heuristic"`)
-- ✅ `npm test` → **76/76 assertions** across 4 suites
+- ✅ `npm test` → **115/115 assertions** across 5 suites
 - ⚠️ `tools.invoke` returns `not_implemented` in this MVP harness version → the UI uses
   its in-browser parser locally (see Resilience above). On the real platform `tools.invoke`
   routes to the Executa tool's AI path (verified via `executa dev` above).
@@ -127,13 +129,14 @@ anna-app validate --strict   # ✓ passes (schema + UI ACL + bundle linter)
 
 ## Tests / QA
 
-Four suites, **76 assertions, all green**. No test framework — plain Node, zero deps.
+Five suites, **115 assertions, all green**. No test framework — plain Node, zero deps.
 
 ```bash
 npm test            # runs all suites (E2E auto-skips if no harness is up)
-npm run test:parser     # 33 — in-browser parser: edge cases, adversarial input, dedupe
+npm run test:parser     # 41 — in-browser parser: edge cases, adversarial input, chatter filter
+npm run test:board      # 29 — pure board logic: grouping, summary markdown, dedupe-merge, normalize
 npm run test:contract   # 15 — Executa JSON-RPC stdio contract (describe/invoke/errors)
-npm run test:sampling   # 16 — mock-host drives the tool's LLM/sampling path + fallbacks
+npm run test:sampling   # 18 — mock-host drives the tool's LLM/sampling path + fallbacks
 npm run test:e2e        # 12 — live harness: storage/chat/window/tools.list lifecycle
 ```
 
@@ -141,9 +144,10 @@ What each suite proves:
 
 | Suite | File | Covers |
 |-------|------|--------|
-| **parser** | `tests/parser.test.mjs` | owner/deadline/priority extraction, FYI-line skipping, prefix/suffix cleanup, CRLF, 2000-line perf, null/empty/HTML-ish input, dedupe keys |
+| **parser** | `tests/parser.test.mjs` | owner/deadline/priority extraction, FYI/chatter skipping, prefix/suffix cleanup, CRLF, 2000-line perf, null/empty/HTML-ish input, dedupe keys |
+| **board** | `tests/board.test.mjs` | status grouping + counts, item normalization (bad priority/status coerced), dedupe-merge (skips dups & empties, no input mutation), chat-summary markdown formatting |
 | **contract** | `tests/replay.mjs` | spawns the real plugin over stdio; `describe` returns a bare manifest; `invoke` succeeds; unknown method → `-32601`; empty notes don't crash |
-| **sampling** | `tests/mock-host.test.mjs` | acts as the Anna host and answers the plugin's `sampling/createMessage` reverse-RPC — clean JSON, ```json fences, garbage→heuristic, error→heuristic, malformed-item normalization, `invoke_id` echo |
+| **sampling** | `tests/mock-host.test.mjs` | acts as the Anna host and answers the plugin's `sampling/createMessage` reverse-RPC — real `{type:text}` shape + string/array shapes, ```json fences, garbage→heuristic, error→heuristic, malformed-item normalization, `invoke_id` echo |
 | **e2e** | `tests/e2e-harness.test.mjs` | against a running `anna-app dev`: real `storage.set/get/list/delete`, `chat.append_artifact/write_message`, `window.set_title`, `tools.list` |
 
 ### Test the tool directly (no harness)
