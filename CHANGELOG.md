@@ -22,6 +22,8 @@ All notable changes to Action Board. Pre-release; dates are when work landed.
   re-extract dedupe.
 - **Bilingual UI**: one-click **EN / ID** toggle (persisted via APS), all chrome +
   priority labels localized (`bundle/i18n.js`).
+- **Dark / light theme** toggle (persisted via APS; CSS custom-property themes).
+- **Contributor docs**: CONTRIBUTING.md, issue templates (bug / feature), PR template.
 - **Smarter date detection**: weekday + ordinal (`Friday the 20th`), `Jun 20`,
   `in 3 days`, `end of week`, full month names, ISO dates.
 - **MIT licensed**; CI badge + tests badge in the README.

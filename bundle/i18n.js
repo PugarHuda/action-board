@@ -50,6 +50,8 @@ export const DICT = {
     exportClip: "Download blocked by sandbox — copied {f} contents to clipboard.",
     exportFail: "Export failed in this runtime.",
     confirmClear: "Remove all cards from the board?",
+    toggleTheme: "Toggle light / dark theme",
+    toggleLang: "Switch language",
   },
   id: {
     ready: "Siap — tempel catatan untuk mulai",
@@ -86,6 +88,8 @@ export const DICT = {
     exportClip: "Unduhan diblokir sandbox — isi {f} disalin ke clipboard.",
     exportFail: "Ekspor gagal di runtime ini.",
     confirmClear: "Hapus semua kartu dari papan?",
+    toggleTheme: "Ganti tema terang / gelap",
+    toggleLang: "Ganti bahasa",
   },
 };
 

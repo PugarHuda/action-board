@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Anna Developer Hub
+    url: https://anna.partners/developers
+    about: Docs for the Anna app runtime, Executa tools, and the App UI SDK.
+  - name: Anna Discord
+    url: https://discord.gg/HFVNePGS9
+    about: Questions about building on Anna / the hackathon.

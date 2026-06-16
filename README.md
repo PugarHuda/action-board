@@ -11,7 +11,7 @@
 ![Action Board demo](docs/demo.gif)
 
 > _Extract → review/approve → organize across To Do / In Progress / Done._
-> Static shots: [full board](docs/screenshot.png) · [empty state](docs/screenshot-empty.png) · [filtered by owner](docs/screenshot-filtered.png) · [mobile](docs/screenshot-mobile.png)
+> Static shots: [full board](docs/screenshot.png) · [light theme](docs/screenshot-light.png) · [empty state](docs/screenshot-empty.png) · [filtered by owner](docs/screenshot-filtered.png) · [mobile](docs/screenshot-mobile.png)
 
 Action Board turns a raw brain-dump or meeting transcript into editable action-item
 cards (**task · owner · deadline · priority**) that you approve and drag across
@@ -51,6 +51,7 @@ auto-extracts. (See `system_prompt_addendum` in `manifest.json`.)
 - **Filter by owner** + **sort each column by priority**.
 - **Export** the board to **Markdown** or **CSV** (one click).
 - **Bilingual** — one-click **EN / ID** toggle (persisted), covering all UI chrome.
+- **Dark / light theme** — one-click toggle, persisted.
 - **Smart dates** — picks up `Fri`, `Jun 20`, `Friday the 20th`, `in 3 days`,
   `end of week`, ISO dates, and more.
 - **Keyboard-friendly** — `Ctrl/⌘+Enter` extracts; focus a card and use `←/→` to move
@@ -158,6 +159,7 @@ anna-app validate --strict   # ✓ passes (schema + UI ACL + bundle linter)
 - **[DEMO.md](DEMO.md)** — 60–90s demo script, shot list, narration, submission blurb
 - **[PUBLISH.md](PUBLISH.md)** — mint Tool ID → wire it in → publish & submit (real `anna-app` commands)
 - **[CHANGELOG.md](CHANGELOG.md)** — what's built, QA fixes, known limitations
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** — setup, the pure-module rule, PR checklist
 - **CI** — `.github/workflows/ci.yml` runs validate + all tests + the mock-sampling AI check + live-harness E2E on every push
 - Regenerate screenshots + GIF: `npm run shots` (needs a running `anna-app dev`)
 

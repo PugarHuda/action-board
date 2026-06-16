@@ -14,6 +14,7 @@ import { t, LANGS } from "./i18n.js";
 const TOOL_ID = "tool-dev-action-triage";
 const STORE_KEY = "board.items";
 const LANG_KEY = "ui.lang";
+const THEME_KEY = "ui.theme";
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -24,6 +25,7 @@ let anna = null;
 let items = []; // [{ id, task, owner, deadline, priority, status, approved, source }]
 let view = { owner: "", sort: "none" }; // filter + sort state
 let lang = "en";
+let theme = "dark";
 const tr = (key, vars) => t(lang, key, vars); // shorthand
 
 // ---- id helper (browser runtime; Date/Math allowed here) -------------------
@@ -50,6 +52,19 @@ async function setLang(next) {
   lang = LANGS.includes(next) ? next : "en";
   applyI18n();
   try { await anna.storage.set({ key: LANG_KEY, value: lang }); } catch (_) {}
+}
+
+// ---- theme -----------------------------------------------------------------
+function applyTheme() {
+  document.documentElement.setAttribute("data-theme", theme);
+  const b = $("#themeBtn");
+  if (b) { b.textContent = theme === "light" ? "☀" : "☾"; b.title = tr("toggleTheme"); }
+}
+
+async function setTheme(next) {
+  theme = next === "light" ? "light" : "dark";
+  applyTheme();
+  try { await anna.storage.set({ key: THEME_KEY, value: theme }); } catch (_) {}
 }
 
 // ---- persistence -----------------------------------------------------------
@@ -362,13 +377,18 @@ async function boot() {
   anna = await AnnaAppRuntime.connect();
 
   await load();
-  // restore saved language
+  // restore saved language + theme
   try {
     const r = await anna.storage.get({ key: LANG_KEY });
     if (r && LANGS.includes(r.value)) lang = r.value;
   } catch (_) {}
+  try {
+    const r = await anna.storage.get({ key: THEME_KEY });
+    if (r && (r.value === "light" || r.value === "dark")) theme = r.value;
+  } catch (_) {}
 
   wireDropzones();
+  applyTheme();
   applyI18n();             // sets all static text + calls render()
   setStatus(tr("ready"), "ok");
 
@@ -384,8 +404,9 @@ async function boot() {
     download("action-board.csv", buildCSV(items), "text/csv");
   });
 
-  // language toggle
+  // language + theme toggles
   $("#langBtn").addEventListener("click", () => setLang(lang === "en" ? "id" : "en"));
+  $("#themeBtn").addEventListener("click", () => setTheme(theme === "dark" ? "light" : "dark"));
 
   // quick-add manual task
   $("#quickAdd").addEventListener("submit", (e) => {

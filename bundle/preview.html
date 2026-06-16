@@ -25,6 +25,7 @@
         </div>
       </div>
       <div class="topbar-actions">
+        <button class="btn ghost sm" id="pvThemeBtn">☾</button>
         <button class="btn ghost sm">EN</button>
         <button class="btn ghost">↗ Send summary to chat</button>
       </div>
@@ -123,6 +124,9 @@
     const step = params.get("step");          // 1=empty 2=extracted 3=approved 4=distributed
     const ownerFilter = params.get("owner") || "";
     const sort = params.get("sort") || "priority";
+    const theme = params.get("theme");        // light | dark
+    if (theme) document.documentElement.setAttribute("data-theme", theme);
+    if (theme === "light") { const tb = document.getElementById("pvThemeBtn"); if (tb) tb.textContent = "☀"; }
 
     // Build the item set for the requested step / state.
     function build() {

@@ -43,7 +43,8 @@ function shot(file, query, { w = 1120, h = 800, scale = 2 } = {}) {
 
 console.log("Browser:", CHROME);
 console.log("Capturing variant screenshots…");
-shot("screenshot.png", "");                                   // hero: full board
+shot("screenshot.png", "");                                   // hero: full board (dark)
+shot("screenshot-light.png", "?theme=light");                 // light theme
 shot("screenshot-empty.png", "?step=1");                      // empty state
 shot("screenshot-filtered.png", "?owner=Sara&sort=priority"); // filtered by owner
 shot("screenshot-mobile.png", "", { w: 430, h: 880, scale: 2 }); // narrow / mobile
