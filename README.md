@@ -1,12 +1,15 @@
 # Action Board — Anna AI-Native App
 
-<!-- Replace OWNER with your GitHub user/org once pushed. -->
-[![CI](https://github.com/OWNER/action-board/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/action-board/actions/workflows/ci.yml)
+[![CI](https://github.com/PugarHuda/action-board/actions/workflows/ci.yml/badge.svg)](https://github.com/PugarHuda/action-board/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 ![tests](https://img.shields.io/badge/tests-157%20passing-brightgreen)
 ![lang](https://img.shields.io/badge/i18n-EN%20%2F%20ID-blueviolet)
 
 **Paste messy meeting notes → get a structured action board you actually trust.**
+
+🔗 **Live UI preview:** https://bundle-rust.vercel.app · **Repo:** https://github.com/PugarHuda/action-board
+_(The live link is a static, SDK-free render of the UI so you can see it instantly. The
+functional app — AI extraction, storage, chat — runs inside Anna via `anna-app dev`.)_
 
 ![Action Board demo](docs/demo.gif)
 

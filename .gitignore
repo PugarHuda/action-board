@@ -1,5 +1,6 @@
 node_modules/
 .anna/
+.vercel/
 dist/
 *.log
 .DS_Store

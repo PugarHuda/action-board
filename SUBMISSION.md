@@ -92,9 +92,11 @@ Try it with `fixtures/meeting-notes-long.txt` or `fixtures/slack-braindump.txt`.
 
 ## Links
 
-- Repo: _<add your Git URL>_
+- **Repo:** https://github.com/PugarHuda/action-board
+- **Live UI preview:** https://bundle-rust.vercel.app _(static SDK-free render; the
+  functional app runs inside Anna via `anna-app dev`)_
 - Demo video: _<add link, script in DEMO.md>_
-- Built by: _<your name / team>_
+- Built by: Pugar Huda Mantoro
 
 **Suggested GitHub repo topics:** `anna` `ai-native` `llm` `productivity`
 `meeting-notes` `kanban` `executa` `hackathon` `javascript`
