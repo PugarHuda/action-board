@@ -87,6 +87,18 @@ ok("chatter 'great job …' skipped", localExtract("- great job on the migration
 ok("real action after chatter lines still found",
   localExtract("- lol nice\n- thanks all\n- fix the bug").length === 1);
 
+// --- smarter date detection ---
+const dl = (s) => (localExtract("- review the doc by " + s)[0] || {}).deadline || "";
+ok("date: ISO", dl("2026-06-20").toLowerCase().includes("2026-06-20"));
+ok("date: weekday + ordinal 'Friday the 20th'", /friday the 20th/i.test(dl("Friday the 20th")));
+ok("date: month + day 'Jun 20'", /jun\s*20/i.test(dl("Jun 20")));
+ok("date: full month 'September 3rd'", /september 3rd/i.test(dl("September 3rd")));
+ok("date: relative 'in 3 days'", /in 3 days/i.test(dl("in 3 days")));
+ok("date: 'next month'", /next month/i.test(dl("next month")));
+ok("date: 'end of week'", /end of week/i.test(dl("end of week")));
+ok("date: bare 'tomorrow'", dl("tomorrow").toLowerCase() === "tomorrow");
+ok("no date -> empty deadline", dl("the way I like it").length >= 0 && (localExtract("- review the doc")[0] || {}).deadline === "");
+
 // --- itemKey dedupe helper ---
 ok("itemKey normalizes case + spaces",
   itemKey({ task: "  Send  The   Deck " }) === itemKey({ task: "send the deck" }));

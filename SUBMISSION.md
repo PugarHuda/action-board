@@ -68,12 +68,13 @@ payload={notes})` and the board auto-extracts (`system_prompt_addendum` in the m
 
 ## Quality / execution
 
-- **133 automated assertions** across 5 plain-Node suites (`npm test`): parser,
-  board logic, Executa stdio contract, LLM/sampling mock-host, live-harness E2E.
+- **157 automated assertions** across 6 plain-Node suites (`npm test`): parser,
+  board logic, i18n, Executa stdio contract, LLM/sampling mock-host, live-harness E2E.
 - **CI** (GitHub Actions) runs validate + tests + the mock-sampling AI check + a
-  live-harness E2E on every push.
+  live-harness E2E on every push. MIT licensed.
 - Polished, **keyboard-accessible** UI (ARIA, focus-visible, arrow-key card moves);
-  filter by owner, sort by priority, export to Markdown/CSV.
+  filter by owner, sort by priority, export to Markdown/CSV, quick-add, and a
+  one-click **EN / ID** language toggle.
 - Two language flavours of the tool (Node default, Python parity).
 
 ## Run it (judges)
@@ -94,6 +95,10 @@ Try it with `fixtures/meeting-notes-long.txt` or `fixtures/slack-braindump.txt`.
 - Repo: _<add your Git URL>_
 - Demo video: _<add link, script in DEMO.md>_
 - Built by: _<your name / team>_
+
+**Suggested GitHub repo topics:** `anna` `ai-native` `llm` `productivity`
+`meeting-notes` `kanban` `executa` `hackathon` `javascript`
+(set via `gh repo edit --add-topic anna --add-topic ai-native …` after pushing).
 
 ## What's AI-generated vs authored
 

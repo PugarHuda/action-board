@@ -8,6 +8,7 @@
     "test": "node tests/run-all.mjs",
     "test:parser": "node tests/parser.test.mjs",
     "test:board": "node tests/board.test.mjs",
+    "test:i18n": "node tests/i18n.test.mjs",
     "test:contract": "node tests/replay.mjs",
     "test:sampling": "node tests/mock-host.test.mjs",
     "test:e2e": "node tests/e2e-harness.test.mjs",

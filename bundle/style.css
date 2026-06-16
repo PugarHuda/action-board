@@ -250,6 +250,15 @@ h1 { font-size: 17px; margin: 0; letter-spacing: .2px; }
   padding: 2px 6px;
 }
 
+/* quick-add */
+.quick-add { display: inline-flex; align-items: center; gap: 6px; }
+.quick-add input {
+  background: var(--bg); color: var(--text);
+  border: 1px solid var(--line); border-radius: 8px;
+  padding: 6px 10px; font-size: 12.5px; min-width: 180px;
+}
+.quick-add input:focus { outline: none; border-color: var(--accent); }
+
 /* ---- source badge ---- */
 .card-tags { display: inline-flex; align-items: center; gap: 6px; }
 .src {
@@ -264,6 +273,7 @@ h1 { font-size: 17px; margin: 0; letter-spacing: .2px; }
   background: rgba(90, 209, 194, .10);
 }
 .src[data-src="parser"] { color: var(--muted); }
+.src[data-src="manual"] { color: var(--medium); border-color: color-mix(in srgb, var(--medium) 40%, transparent); }
 
 /* ---- focus visibility (keyboard a11y) ---- */
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }

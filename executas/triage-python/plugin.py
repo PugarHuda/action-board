@@ -208,10 +208,12 @@ _HIGH = ("urgent", "asap", "critical", "blocker", "today", "p0", "p1", "!!")
 _LOW = ("someday", "nice to have", "low priority", "eventually", "backlog")
 _CHATTER = ("lol", "haha", "thanks", "thank you", "great job", "good job", "nice work", "kudos", "shoutout")
 _DATE_RE = re.compile(
-    r"\b(\d{4}-\d{2}-\d{2}|today|tomorrow|tonight|eod|"
+    r"\b(\d{4}-\d{2}-\d{2}|in \d+ (day|week)s?|today|tomorrow|tonight|eod|"
+    r"next (week|month)|this (week|month)|end of (the )?(week|month|day)|"
     r"mon(day)?|tue(sday)?|wed(nesday)?|thu(rsday)?|fri(day)?|sat(urday)?|sun(day)?|"
-    r"next week|this week|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\b"
-    r"(\s+\d{1,2})?",
+    r"jan(uary)?|feb(ruary)?|mar(ch)?|apr(il)?|may|jun(e)?|jul(y)?|aug(ust)?|"
+    r"sep(tember)?|oct(ober)?|nov(ember)?|dec(ember)?)\b"
+    r"(\s+(the\s+)?\d{1,2}(st|nd|rd|th)?)?",
     re.IGNORECASE,
 )
 _OWNER_AT = re.compile(r"@([A-Za-z][\w-]*)")

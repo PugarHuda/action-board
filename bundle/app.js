@@ -8,19 +8,23 @@ import {
   groupByStatus, buildSummaryMarkdown, mergeItems, normalizeItem,
   applyView, ownersOf, buildCSV, STATUSES,
 } from "./board.js";
+import { t, LANGS } from "./i18n.js";
 
 // Server-minted ID is rewritten on publish. tool-dev-* works in `anna-app dev`.
 const TOOL_ID = "tool-dev-action-triage";
 const STORE_KEY = "board.items";
+const LANG_KEY = "ui.lang";
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
-const STATUS_LABEL = { todo: "To Do", doing: "In Progress", done: "Done" };
+const PRIO_KEY = { high: "prioHigh", medium: "prioMedium", low: "prioLow" };
 
 let anna = null;
 let items = []; // [{ id, task, owner, deadline, priority, status, approved, source }]
 let view = { owner: "", sort: "none" }; // filter + sort state
+let lang = "en";
+const tr = (key, vars) => t(lang, key, vars); // shorthand
 
 // ---- id helper (browser runtime; Date/Math allowed here) -------------------
 function uid() {
@@ -31,6 +35,21 @@ function setStatus(text, kind = "") {
   const el = $("#status");
   el.textContent = text;
   el.className = "sub " + kind;
+}
+
+// ---- i18n ------------------------------------------------------------------
+function applyI18n() {
+  $$("[data-i18n]").forEach((el) => { el.textContent = tr(el.dataset.i18n); });
+  $$("[data-i18n-ph]").forEach((el) => { el.placeholder = tr(el.dataset.i18nPh); });
+  const lb = $("#langBtn");
+  if (lb) lb.textContent = lang.toUpperCase();
+  render(); // owner-filter "Everyone", priority labels, badges depend on lang
+}
+
+async function setLang(next) {
+  lang = LANGS.includes(next) ? next : "en";
+  applyI18n();
+  try { await anna.storage.set({ key: LANG_KEY, value: lang }); } catch (_) {}
 }
 
 // ---- persistence -----------------------------------------------------------
@@ -57,12 +76,12 @@ async function load() {
 async function extract() {
   const notes = $("#notes").value.trim();
   if (!notes) {
-    flashHint("Paste some notes first.");
+    flashHint(tr("pasteFirst"));
     return;
   }
   const btn = $("#extractBtn");
   btn.disabled = true;
-  btn.textContent = "✦ Extracting…";
+  btn.textContent = tr("extracting");
   flashHint("");
 
   try {
@@ -71,19 +90,20 @@ async function extract() {
     const { items: merged, added, dupes } = mergeItems(items, found, uid, source);
     items = merged;
     if (!added) {
-      flashHint(found.length ? "Those items are already on the board." : "No action items detected. Try clearer notes.");
+      flashHint(found.length ? tr("alreadyOnBoard") : tr("noneDetected"));
     } else {
-      flashHint(`Added ${added} item${added > 1 ? "s" : ""} (${source})${dupes ? `, skipped ${dupes} duplicate${dupes > 1 ? "s" : ""}` : ""}. Review & approve →`);
+      const dup = dupes ? tr("dupSuffix", { d: dupes, s: dupes > 1 ? "s" : "" }) : "";
+      flashHint(tr("added", { n: added, s: added > 1 ? "s" : "", src: source, dup }));
       $("#notes").value = "";
       await save();
       render();
     }
   } catch (e) {
     console.error(e);
-    flashHint("Extraction failed: " + (e.message || e));
+    flashHint(tr("extractFail", { e: e.message || e }));
   } finally {
     btn.disabled = false;
-    btn.textContent = "✦ Extract action items";
+    btn.textContent = tr("extract");
   }
 }
 
@@ -143,7 +163,7 @@ function syncOwnerFilter() {
   if (!sel) return;
   const owners = ownersOf(items);
   const current = view.owner;
-  sel.innerHTML = '<option value="">Everyone</option>' +
+  sel.innerHTML = `<option value="">${tr("everyone")}</option>` +
     owners.map((o) => `<option value="${o}">${o}</option>`).join("");
   // keep selection if that owner still exists, else reset to all
   sel.value = owners.includes(current) ? current : "";
@@ -175,7 +195,7 @@ function buildCard(it) {
 
   const prio = $(".prio", node);
   prio.dataset.prio = it.priority;
-  prio.textContent = it.priority;
+  prio.textContent = tr(PRIO_KEY[it.priority]);
 
   const src = $(".src", node);
   if (src && it.source) {
@@ -191,7 +211,9 @@ function buildCard(it) {
   taskEl.setAttribute("aria-label", "Task");
   $('[data-field="owner"]', node).textContent = it.owner || "";
   $('[data-field="deadline"]', node).textContent = it.deadline || "";
-  $('[data-field="priority"]', node).value = it.priority;
+  const psel = $('[data-field="priority"]', node);
+  [...psel.options].forEach((o) => { o.textContent = tr(PRIO_KEY[o.value]); });
+  psel.value = it.priority;
 
   // inline edits (contenteditable fields only — the priority <select> is
   // handled by its own change listener below; skip it here to avoid writing
@@ -202,10 +224,10 @@ function buildCard(it) {
     it[f] = e.target.textContent.trim();
     save();
   });
-  $('[data-field="priority"]', node).addEventListener("change", (e) => {
+  psel.addEventListener("change", (e) => {
     it.priority = e.target.value;
     prio.dataset.prio = it.priority;
-    prio.textContent = it.priority;
+    prio.textContent = tr(PRIO_KEY[it.priority]);
     save();
   });
 
@@ -264,7 +286,7 @@ function wireDropzones() {
 // ---- push summary back into the conversation -------------------------------
 async function sendSummary() {
   if (!items.length) {
-    flashHint("Nothing to summarize yet.");
+    flashHint(tr("nothingToSummarize"));
     return;
   }
   const md = buildSummaryMarkdown(items);
@@ -282,22 +304,36 @@ async function sendSummary() {
     if (anna.chat.write_message) {
       await anna.chat.write_message({ role: "assistant", content: md });
     }
-    flashHint("Summary sent to chat ✓");
+    flashHint(tr("summarySent"));
   } catch (e) {
     console.error(e);
-    flashHint("Could not post to chat: " + (e.message || e));
+    flashHint(tr("summaryFail", { e: e.message || e }));
   }
 }
 
 // ---- clear + export --------------------------------------------------------
 async function clearBoard() {
   if (!items.length) return;
-  if (typeof confirm === "function" && !confirm("Remove all cards from the board?")) return;
+  if (typeof confirm === "function" && !confirm(tr("confirmClear"))) return;
   items = [];
   view.owner = "";
   await save();
   render();
-  flashHint("Board cleared.");
+  flashHint(tr("boardCleared"));
+}
+
+// Manually add a single task (runs it through the parser to pick up @owner /
+// dates / priority), tagged with source "manual".
+async function addManual(text) {
+  const line = (text || "").trim();
+  if (!line) return;
+  const parsed = localExtract(line);
+  const found = parsed.length ? parsed : [{ task: line, priority: "medium" }];
+  const { items: merged, added } = mergeItems(items, found, uid, "manual");
+  items = merged;
+  if (!added) { flashHint(tr("alreadyOnBoard")); return; }
+  await save();
+  render();
 }
 
 // Download a file from the iframe. May be restricted by the sandbox; if so,
@@ -310,13 +346,13 @@ async function download(filename, text, mime) {
     a.href = url; a.download = filename;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
-    flashHint(`Exported ${filename}`);
+    flashHint(tr("exported", { f: filename }));
   } catch (e) {
     try {
       await navigator.clipboard.writeText(text);
-      flashHint(`Download blocked by sandbox — copied ${filename} contents to clipboard.`);
+      flashHint(tr("exportClip", { f: filename }));
     } catch (_) {
-      flashHint("Export failed in this runtime.");
+      flashHint(tr("exportFail"));
     }
   }
 }
@@ -324,17 +360,40 @@ async function download(filename, text, mime) {
 // ---- boot ------------------------------------------------------------------
 async function boot() {
   anna = await AnnaAppRuntime.connect();
-  setStatus("Ready — paste notes to begin", "ok");
 
   await load();
+  // restore saved language
+  try {
+    const r = await anna.storage.get({ key: LANG_KEY });
+    if (r && LANGS.includes(r.value)) lang = r.value;
+  } catch (_) {}
+
   wireDropzones();
-  render();
+  applyI18n();             // sets all static text + calls render()
+  setStatus(tr("ready"), "ok");
 
   $("#extractBtn").addEventListener("click", extract);
   $("#summaryBtn").addEventListener("click", sendSummary);
   $("#clearBtn").addEventListener("click", clearBoard);
-  $("#exportMdBtn").addEventListener("click", () => download("action-board.md", buildSummaryMarkdown(items), "text/markdown"));
-  $("#exportCsvBtn").addEventListener("click", () => download("action-board.csv", buildCSV(items), "text/csv"));
+  $("#exportMdBtn").addEventListener("click", () => {
+    if (!items.length) return flashHint(tr("nothingToExport"));
+    download("action-board.md", buildSummaryMarkdown(items), "text/markdown");
+  });
+  $("#exportCsvBtn").addEventListener("click", () => {
+    if (!items.length) return flashHint(tr("nothingToExport"));
+    download("action-board.csv", buildCSV(items), "text/csv");
+  });
+
+  // language toggle
+  $("#langBtn").addEventListener("click", () => setLang(lang === "en" ? "id" : "en"));
+
+  // quick-add manual task
+  $("#quickAdd").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const input = $("#quickAddInput");
+    addManual(input.value);
+    input.value = "";
+  });
 
   // owner filter
   $("#ownerFilter").addEventListener("change", (e) => { view.owner = e.target.value; render(); });
@@ -374,5 +433,5 @@ async function boot() {
 
 boot().catch((e) => {
   console.error(e);
-  setStatus("Failed to connect to Anna runtime", "err");
+  setStatus(tr("connectFail"), "err");
 });

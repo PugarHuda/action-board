@@ -17,12 +17,13 @@
         </div>
       </div>
       <div class="topbar-actions">
-        <button id="summaryBtn" class="btn ghost" title="Post a summary into the chat">↗ Send summary to chat</button>
+        <button id="langBtn" class="btn ghost sm" title="Switch language" aria-label="Switch language">EN</button>
+        <button id="summaryBtn" class="btn ghost" data-i18n="sendSummary" title="Post a summary into the chat">↗ Send summary to chat</button>
       </div>
     </header>
 
     <section class="intake">
-      <textarea id="notes" placeholder="Paste raw meeting notes or a brain-dump here…
+      <textarea id="notes" data-i18n-ph="notesPlaceholder" placeholder="Paste raw meeting notes or a brain-dump here…
 
 e.g.
 - @Sara to send the revised deck by Fri, urgent
@@ -30,7 +31,7 @@ e.g.
 - Tom will fix the login bug tomorrow
 - nice to have: dark mode someday"></textarea>
       <div class="intake-actions">
-        <button id="extractBtn" class="btn primary">✦ Extract action items</button>
+        <button id="extractBtn" class="btn primary" data-i18n="extract">✦ Extract action items</button>
         <span class="kbd-hint" aria-hidden="true">Ctrl/⌘ + Enter</span>
         <span id="extractHint" class="hint" role="status" aria-live="polite"></span>
       </div>
@@ -38,39 +39,44 @@ e.g.
 
     <section class="toolbar" aria-label="Board controls">
       <div class="toolbar-left">
-        <label class="tb-field">Owner
+        <label class="tb-field"><span data-i18n="ownerLabel">Owner</span>
           <select id="ownerFilter" aria-label="Filter cards by owner">
             <option value="">Everyone</option>
           </select>
         </label>
         <button id="sortBtn" class="btn ghost sm" aria-pressed="false"
-                title="Sort each column by priority">↓ Priority</button>
+                data-i18n="sortPriority" title="Sort each column by priority">↓ Priority</button>
+        <form id="quickAdd" class="quick-add">
+          <input id="quickAddInput" type="text" placeholder="Add a task manually…"
+                 data-i18n-ph="addPlaceholder" aria-label="Add a task manually" />
+          <button type="submit" class="btn ghost sm" data-i18n="addBtn">+ Add</button>
+        </form>
       </div>
       <div class="toolbar-right">
         <button id="exportMdBtn" class="btn ghost sm" title="Download board as Markdown">⬇ .md</button>
         <button id="exportCsvBtn" class="btn ghost sm" title="Download board as CSV">⬇ .csv</button>
-        <button id="clearBtn" class="btn ghost sm danger" title="Remove all cards">Clear</button>
+        <button id="clearBtn" class="btn ghost sm danger" data-i18n="clear" title="Remove all cards">Clear</button>
       </div>
     </section>
 
     <main class="board" id="board">
       <div class="column" data-status="todo">
-        <div class="col-head"><span>To Do</span><span class="count" data-count="todo">0</span></div>
+        <div class="col-head"><span data-i18n="colTodo">To Do</span><span class="count" data-count="todo">0</span></div>
         <div class="dropzone" data-status="todo" role="list" aria-label="To Do"></div>
       </div>
       <div class="column" data-status="doing">
-        <div class="col-head"><span>In Progress</span><span class="count" data-count="doing">0</span></div>
+        <div class="col-head"><span data-i18n="colDoing">In Progress</span><span class="count" data-count="doing">0</span></div>
         <div class="dropzone" data-status="doing" role="list" aria-label="In Progress"></div>
       </div>
       <div class="column" data-status="done">
-        <div class="col-head"><span>Done</span><span class="count" data-count="done">0</span></div>
+        <div class="col-head"><span data-i18n="colDone">Done</span><span class="count" data-count="done">0</span></div>
         <div class="dropzone" data-status="done" role="list" aria-label="Done"></div>
       </div>
     </main>
 
     <div id="empty" class="empty">
-      <p>No action items yet.</p>
-      <p class="muted">Paste notes above and hit <b>Extract</b> — the AI does the first pass, you stay the reviewer.</p>
+      <p data-i18n="emptyTitle">No action items yet.</p>
+      <p class="muted" data-i18n="emptyBody">Paste notes above and hit Extract — the AI does the first pass, you stay the reviewer.</p>
     </div>
   </div>
 

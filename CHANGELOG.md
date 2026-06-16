@@ -17,8 +17,14 @@ All notable changes to Action Board. Pre-release; dates are when work landed.
   (`append_artifact` + `write_message`).
 - **Three-layer extraction fallback** (host LLM → tool heuristic → in-browser parser)
   so a board always appears.
-- **Features**: per-card source badge (AI vs parser), filter by owner, sort by
-  priority, export to Markdown/CSV, clear board, re-extract dedupe.
+- **Features**: per-card source badge (AI / parser / manual), **quick-add** a task by
+  hand, filter by owner, sort by priority, export to Markdown/CSV, clear board,
+  re-extract dedupe.
+- **Bilingual UI**: one-click **EN / ID** toggle (persisted via APS), all chrome +
+  priority labels localized (`bundle/i18n.js`).
+- **Smarter date detection**: weekday + ordinal (`Friday the 20th`), `Jun 20`,
+  `in 3 days`, `end of week`, full month names, ISO dates.
+- **MIT licensed**; CI badge + tests badge in the README.
 - **Accessibility**: ARIA roles/labels, focus-visible styles, full keyboard support
   (`Ctrl/⌘+Enter` extract; `←/→` move card, `a` approve, `Delete` remove); responsive
   layout for narrow widths.
@@ -26,7 +32,7 @@ All notable changes to Action Board. Pre-release; dates are when work landed.
   mock-sampling AI check + live-harness E2E); demo fixtures; `preview.html` +
   `scripts/capture-shots.mjs` to generate screenshots and `docs/demo.gif`.
 - **Docs**: README, ARCHITECTURE, DEMO (video script), PUBLISH, SUBMISSION.
-- **Tests**: 5 plain-Node suites, **133 assertions** (parser, board, contract,
+- **Tests**: 6 plain-Node suites, **157 assertions** (parser, board, i18n, contract,
   sampling, e2e).
 
 ### Fixed (found during QA)

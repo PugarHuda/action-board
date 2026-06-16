@@ -123,7 +123,7 @@ const ACTION_VERBS = [
 const HIGH = ["urgent", "asap", "critical", "blocker", "today", "p0", "p1", "!!"];
 const LOW = ["someday", "nice to have", "low priority", "eventually", "backlog"];
 const CHATTER = ["lol", "haha", "thanks", "thank you", "great job", "good job", "nice work", "kudos", "shoutout"];
-const DATE_RE = /\b(\d{4}-\d{2}-\d{2}|today|tomorrow|tonight|eod|mon(day)?|tue(sday)?|wed(nesday)?|thu(rsday)?|fri(day)?|sat(urday)?|sun(day)?|next week|this week|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\b(\s+\d{1,2})?/i;
+const DATE_RE = /\b(\d{4}-\d{2}-\d{2}|in \d+ (day|week)s?|today|tomorrow|tonight|eod|next (week|month)|this (week|month)|end of (the )?(week|month|day)|mon(day)?|tue(sday)?|wed(nesday)?|thu(rsday)?|fri(day)?|sat(urday)?|sun(day)?|jan(uary)?|feb(ruary)?|mar(ch)?|apr(il)?|may|jun(e)?|jul(y)?|aug(ust)?|sep(tember)?|oct(ober)?|nov(ember)?|dec(ember)?)\b(\s+(the\s+)?\d{1,2}(st|nd|rd|th)?)?/i;
 const OWNER_AT = /@([A-Za-z][\w-]*)/;
 const OWNER_ASSIGN = /\b([A-Z][a-z]+)\s+(?:to|will|should|needs to|is going to)\b/;
 

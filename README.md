@@ -1,5 +1,11 @@
 # Action Board — Anna AI-Native App
 
+<!-- Replace OWNER with your GitHub user/org once pushed. -->
+[![CI](https://github.com/OWNER/action-board/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/action-board/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+![tests](https://img.shields.io/badge/tests-157%20passing-brightgreen)
+![lang](https://img.shields.io/badge/i18n-EN%20%2F%20ID-blueviolet)
+
 **Paste messy meeting notes → get a structured action board you actually trust.**
 
 ![Action Board demo](docs/demo.gif)
@@ -38,10 +44,15 @@ auto-extracts. (See `system_prompt_addendum` in `manifest.json`.)
 
 ### Board features
 
-- **Source badges** — every card shows whether it came from the **AI** model or the
-  rule-based **parser**, so you can see what to trust at a glance.
+- **Source badges** — every card shows whether it came from the **AI** model, the
+  rule-based **parser**, or was added **manually**.
+- **Quick-add** — type a task in the toolbar to add one by hand (still parsed for
+  `@owner`, dates, and priority).
 - **Filter by owner** + **sort each column by priority**.
 - **Export** the board to **Markdown** or **CSV** (one click).
+- **Bilingual** — one-click **EN / ID** toggle (persisted), covering all UI chrome.
+- **Smart dates** — picks up `Fri`, `Jun 20`, `Friday the 20th`, `in 3 days`,
+  `end of week`, ISO dates, and more.
 - **Keyboard-friendly** — `Ctrl/⌘+Enter` extracts; focus a card and use `←/→` to move
   it across columns, `a` to approve, `Delete` to remove. ARIA roles/labels throughout.
 - **Dedupe** — re-extracting the same notes won't create duplicate cards.
@@ -74,6 +85,7 @@ action-board/
 │   ├── app.js               # SDK wiring: tools / storage / chat / window + DnD + review
 │   ├── parser.js            # shared, dependency-free action-item parser (unit-tested)
 │   ├── board.js             # pure board logic: grouping, summary, dedupe, sort, filter, CSV (unit-tested)
+│   ├── i18n.js              # EN/ID dictionary + t() (unit-tested)
 │   ├── preview.html         # static SDK-free render of the UI (for screenshots)
 │   ├── style.css
 │   └── icon.svg
@@ -84,10 +96,11 @@ action-board/
 │   └── triage-python/       # Same contract, Python flavour (publish-ready)
 │       ├── plugin.py
 │       └── pyproject.toml
-├── tests/                   # 5 suites, 133 assertions, plain Node (no deps)
+├── tests/                   # 6 suites, 157 assertions, plain Node (no deps)
 │   ├── run-all.mjs          # aggregate runner (npm test)
 │   ├── parser.test.mjs
 │   ├── board.test.mjs       # pure board logic
+│   ├── i18n.test.mjs        # EN/ID dictionary
 │   ├── replay.mjs           # stdio contract
 │   ├── mock-host.test.mjs   # LLM / sampling path
 │   └── e2e-harness.test.mjs # live harness lifecycle
@@ -133,7 +146,7 @@ anna-app validate --strict   # ✓ passes (schema + UI ACL + bundle linter)
 - ✅ **AI/sampling path** verified through the real executa runtime:
   `anna-app executa dev --invoke extract_actions --mock-sampling fixtures/mock-sampling.jsonl`
   returns `"source":"llm"` with model-parsed items (and `--no-sampling` → `"heuristic"`)
-- ✅ `npm test` → **133/133 assertions** across 5 suites
+- ✅ `npm test` → **157/157 assertions** across 6 suites
 - ⚠️ `tools.invoke` returns `not_implemented` in this MVP harness version → the UI uses
   its in-browser parser locally (see Resilience above). On the real platform `tools.invoke`
   routes to the Executa tool's AI path (verified via `executa dev` above).
@@ -152,12 +165,13 @@ anna-app validate --strict   # ✓ passes (schema + UI ACL + bundle linter)
 
 ## Tests / QA
 
-Five suites, **133 assertions, all green**. No test framework — plain Node, zero deps.
+Six suites, **157 assertions, all green**. No test framework — plain Node, zero deps.
 
 ```bash
 npm test            # runs all suites (E2E auto-skips if no harness is up)
-npm run test:parser     # 41 — in-browser parser: edge cases, adversarial input, chatter filter
-npm run test:board      # 47 — pure board logic: grouping, summary markdown, dedupe-merge, normalize
+npm run test:parser     # 50 — in-browser parser: extraction, chatter filter, smart dates
+npm run test:board      # 47 — pure board logic: grouping, summary, dedupe, sort/filter, CSV
+npm run test:i18n       # 15 — EN/ID dictionary: key parity, interpolation, fallback
 npm run test:contract   # 15 — Executa JSON-RPC stdio contract (describe/invoke/errors)
 npm run test:sampling   # 18 — mock-host drives the tool's LLM/sampling path + fallbacks
 npm run test:e2e        # 12 — live harness: storage/chat/window/tools.list lifecycle
@@ -167,8 +181,9 @@ What each suite proves:
 
 | Suite | File | Covers |
 |-------|------|--------|
-| **parser** | `tests/parser.test.mjs` | owner/deadline/priority extraction, FYI/chatter skipping, prefix/suffix cleanup, CRLF, 2000-line perf, null/empty/HTML-ish input, dedupe keys |
-| **board** | `tests/board.test.mjs` | status grouping + counts, item normalization (bad priority/status coerced), dedupe-merge (skips dups & empties, no input mutation), chat-summary markdown formatting |
+| **parser** | `tests/parser.test.mjs` | owner/deadline/priority extraction, FYI/chatter skipping, smart date formats, cleanup, CRLF, 2000-line perf, null/empty/HTML-ish input |
+| **board** | `tests/board.test.mjs` | status grouping + counts, normalization, dedupe-merge, sort-by-priority, owner filter, CSV export, chat-summary markdown |
+| **i18n** | `tests/i18n.test.mjs` | EN/ID key parity (no missing/extra), no empty values, interpolation, language + key fallback |
 | **contract** | `tests/replay.mjs` | spawns the real plugin over stdio; `describe` returns a bare manifest; `invoke` succeeds; unknown method → `-32601`; empty notes don't crash |
 | **sampling** | `tests/mock-host.test.mjs` | acts as the Anna host and answers the plugin's `sampling/createMessage` reverse-RPC — real `{type:text}` shape + string/array shapes, ```json fences, garbage→heuristic, error→heuristic, malformed-item normalization, `invoke_id` echo |
 | **e2e** | `tests/e2e-harness.test.mjs` | against a running `anna-app dev`: real `storage.set/get/list/delete`, `chat.append_artifact/write_message`, `window.set_title`, `tools.list` |
