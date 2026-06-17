@@ -72,7 +72,7 @@ Extraction degrades gracefully across three layers — you always get a board:
 |-------|-------|--------------|
 | **Host LLM (sampling)** | inside the Executa tool | production / real platform |
 | **Tool heuristic parser** | inside the Executa tool | `tools.invoke` works but no LLM (`ACTION_TRIAGE_NO_SAMPLE=1`) |
-| **In-browser parser** | `bundle/app.js` | runtime hasn't implemented `tools.invoke` (e.g. the current local MVP harness) |
+| **In-browser parser** | `bundle/app.js` | a runtime that doesn't implement `tools.invoke` (resilience fallback) |
 
 The UI label shows which path produced the items.
 
@@ -153,10 +153,13 @@ anna-app validate --strict   # ✓ passes (schema + UI ACL + bundle linter)
 - ✅ **AI/sampling path** verified through the real executa runtime:
   `anna-app executa dev --invoke extract_actions --mock-sampling fixtures/mock-sampling.jsonl`
   returns `"source":"llm"` with model-parsed items (and `--no-sampling` → `"heuristic"`)
-- ✅ `npm test` → **178/178 assertions** across 8 suites
-- ⚠️ `tools.invoke` returns `not_implemented` in this MVP harness version → the UI uses
-  its in-browser parser locally (see Resilience above). On the real platform `tools.invoke`
-  routes to the Executa tool's AI path (verified via `executa dev` above).
+- ✅ `npm test` → **178/178 assertions** across 8 suites (168 locally; the Python-parity
+  suite adds 10 on CI where a Python runtime is present)
+- ✅ **`tools.invoke` is live** in the current runtime (`anna-app-runtime-local 0.2.0a9`,
+  spawned by `anna-app dev`): the UI→Executa tool path runs end-to-end locally (E2E test
+  asserts it). Under `--no-llm` the tool returns its heuristic; with the host LLM it returns
+  the AI parse. The in-browser parser stays as a resilience fallback for runtimes without
+  `tools.invoke` (see Resilience above).
 
 ## Guides in this repo
 

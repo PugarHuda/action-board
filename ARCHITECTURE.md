@@ -62,7 +62,7 @@ A standalone JSON-RPC-over-stdio process (Node default, Python parity). Implemen
 |---|---|---|
 | Host LLM (sampling) | the tool | production / real platform |
 | Tool heuristic | the tool | `tools.invoke` works but sampling unavailable |
-| In-browser parser | `app.js` + `parser.js` | runtime lacks `tools.invoke` (MVP harness) |
+| In-browser parser | `app.js` + `parser.js` | a runtime that lacks `tools.invoke` (resilience fallback) |
 
 A board always appears; the UI labels which layer produced each card.
 

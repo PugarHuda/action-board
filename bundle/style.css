@@ -215,6 +215,12 @@ h1 { font-size: 18px; margin: 0; letter-spacing: -0.2px; font-weight: 800; }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .card:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
+/* ---- reduced motion (a11y) ---- */
+@media (prefers-reduced-motion: reduce) {
+  .btn, .icon, .card { transition: none; }
+  .btn:hover, .card:hover { transform: none; }
+}
+
 /* ---- responsive (narrow / mobile) ---- */
 @media (max-width: 680px) {
   .board { grid-template-columns: 1fr; overflow-y: auto; }

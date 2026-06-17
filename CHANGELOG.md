@@ -62,9 +62,20 @@ All notable changes to Action Board. Pre-release; dates are when work landed.
 ### Refactored
 - Pulled pure logic out of `app.js` into `parser.js` and `board.js` for testability.
 
+### Changed
+- **Restyled the UI to neo-brutalism** (muted/earthy palette: sand/cream base, muted
+  lavender/sage/clay accents; thick ink borders + hard offset shadows). Light is the
+  default theme; dark is a warm-charcoal variant. Added a `prefers-reduced-motion`
+  guard. Regenerated all screenshots + `docs/demo.gif`.
+- **`tools.invoke` is now live in the harness runtime** (`anna-app-runtime-local 0.2.0a9`,
+  spawned by `anna-app dev` under CLI 0.1.30): the UI→Executa tool path runs end-to-end
+  locally (the E2E suite asserts it). Earlier runtimes returned `not_implemented`; the
+  in-browser parser remains as a resilience fallback for those.
+- Fixed `preview.html` to inherit the theme background (was a leftover hardcoded
+  near-black frame that clashed with the light default theme in screenshots).
+
 ### Known limitations
-- The local MVP harness (`anna-app` 0.1.30) returns `not_implemented` for
-  `tools.invoke`; the UI uses its in-browser parser locally. The tool's AI path is
-  verified via `anna-app executa dev --mock-sampling` and routes correctly on the
-  real platform.
+- Under `--no-llm` the live tool path returns its heuristic, not a model parse; the
+  genuine LLM path is verified via `anna-app executa dev --mock-sampling` (→ `source:llm`)
+  and routes to the host model on the real platform.
 - Not yet published to the Anna platform (needs `anna-app login` + minted Tool ID).

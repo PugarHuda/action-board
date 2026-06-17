@@ -67,10 +67,9 @@ harness as inside Anna.)_
 **What is your biggest blocker right now?\***
 → **Other:**
 > Developer/deploy access to a nexus host to publish & run on the hosted platform — so
-> far only the local `anna-app dev` harness. Also: `tools.invoke` returns
-> `not_implemented` in the CLI 0.1.30 harness, so the UI uses an in-browser parser
-> fallback locally; I'd like to confirm the UI→Executa tool path works on the hosted
-> runtime (the tool itself + sampling are verified via `executa dev`).
+> far only the local `anna-app dev` harness. (The UI→Executa `tools.invoke` path now runs
+> end-to-end in the local harness runtime `anna-app-runtime-local 0.2.0a9`; the remaining
+> blocker is just hosted deploy access.)
 
 **What kind of feedback do you want most from the Anna team?\*** (check all that apply)
 - [x] Potential implementation pitfalls
@@ -80,9 +79,9 @@ harness as inside Anna.)_
 - [ ] _(optional)_ Architecture recommendation
 
 **Other / specific questions for the Anna team:**
-> 1. Is `tools.invoke` (UI Host API → Executa) supported on the hosted runtime, or should
->    the UI call the LLM directly via `llm.*` for the in-app extraction? (It's
->    `not_implemented` in CLI 0.1.30's local harness.)
+> 1. `tools.invoke` (UI Host API → Executa) now works in the local runtime
+>    (`anna-app-runtime-local 0.2.0a9`) — does the hosted runtime route it the same way,
+>    so the UI's tool call reaches the Executa tool's sampling path with no code change?
 > 2. Confirm the sampling wire shape: I send `messages[].content` as `{type:"text",text}`
 >    and read `result.content.text` — is that correct for the hosted model?
 > 3. ACL sanity: `ui.host_api` is `storage: ["get","set"]`, `tools: ["required:*"]`,

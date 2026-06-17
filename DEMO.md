@@ -68,8 +68,9 @@ Record at 1280×720+, hide bookmarks bar, zoom browser to ~110% so cards read cl
 
 ## If you want to show the *real* AI extraction on camera
 
-The local MVP harness doesn't implement `tools.invoke` yet, so the in-browser parser
-runs in the UI. To show the genuine LLM path, screen-record this terminal command
+The current harness runtime implements `tools.invoke`, so the UI already routes through
+the real Executa tool — but under `--no-llm` that tool returns its heuristic, not a model
+parse. To show the genuine **LLM** path on camera, screen-record this terminal command
 (it runs the tool through Anna's real executa runtime with a canned model response):
 
 ```bash
@@ -94,4 +95,4 @@ to hit a live model.)
 > It uses four Anna primitives together — App UI window, Executa tool, persistent
 > storage, and chat write-back — with a three-layer extraction fallback so the demo
 > never breaks. Built and tested with the `anna-app` CLI (`validate --strict` passes;
-> 76 automated assertions across 4 suites).
+> 178 automated assertions across 8 suites).

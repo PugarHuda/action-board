@@ -62,14 +62,17 @@ payload={notes})` and the board auto-extracts (`system_prompt_addendum` in the m
 - AI/sampling path verified through the real executa runtime:
   `anna-app executa dev --invoke extract_actions --mock-sampling fixtures/mock-sampling.jsonl`
   → `source: "llm"`.
+- **The UI→Executa tool path is live locally:** `tools.invoke` is implemented in the
+  current runtime (`anna-app-runtime-local 0.2.0a9`), so pasting notes runs through the
+  real Executa tool end-to-end in the harness (E2E test asserts it).
 - **Resilient by design:** extraction degrades host-LLM → tool heuristic → in-browser
-  parser, so a board always appears (the current MVP harness hasn't implemented
-  `tools.invoke` yet, so the UI uses the in-browser parser locally).
+  parser, so a board always appears even on a runtime without `tools.invoke`.
 
 ## Quality / execution
 
-- **157 automated assertions** across 6 plain-Node suites (`npm test`): parser,
-  board logic, i18n, Executa stdio contract, LLM/sampling mock-host, live-harness E2E.
+- **178 automated assertions** across 8 plain-Node suites (`npm test`): parser,
+  board logic, i18n, Executa stdio contract, LLM/sampling mock-host, live-harness E2E,
+  browser UI smoke, and Python-flavour parity.
 - **CI** (GitHub Actions) runs validate + tests + the mock-sampling AI check + a
   live-harness E2E on every push. MIT licensed.
 - Polished, **keyboard-accessible** UI (ARIA, focus-visible, arrow-key card moves);
@@ -85,7 +88,7 @@ npm i -g @anna-ai/cli
 #                        curl -LsSf https://astral.sh/uv/install.sh | sh (mac/linux)
 cd action-board
 anna-app dev --no-llm        # open http://localhost:5180/, open the board view
-npm test                     # 133 assertions
+npm test                     # 168 assertions locally (178 on CI w/ Python)
 ```
 
 Try it with `fixtures/meeting-notes-long.txt` or `fixtures/slack-braindump.txt`.
