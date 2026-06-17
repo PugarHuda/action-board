@@ -85,7 +85,11 @@ harness as inside Anna.)_
 >    `not_implemented` in CLI 0.1.30's local harness.)
 > 2. Confirm the sampling wire shape: I send `messages[].content` as `{type:"text",text}`
 >    and read `result.content.text` — is that correct for the hosted model?
-> 3. ACL sanity: `ui.host_api` grants `storage`, `chat`, and `tools: ["required:*"]` —
->    anything else needed for `chat.write_message` to durably persist?
+> 3. ACL sanity: `ui.host_api` is `storage: ["get","set"]`, `tools: ["required:*"]`,
+>    `chat: ["append_artifact","write_message"]` (least-privilege; the harness already
+>    denies `storage.list/delete`). Anything else needed for `chat.write_message` to
+>    durably persist on the hosted runtime?
 >
 > Repo: https://github.com/PugarHuda/action-board · Live UI preview: https://bundle-rust.vercel.app
+> Quality: `validate --strict` passes; 178 automated assertions across 8 suites; CI green;
+> security review done (fixed an owner-filter XSS; least-privilege storage ACL).
