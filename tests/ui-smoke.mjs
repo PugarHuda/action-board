@@ -111,6 +111,16 @@ try {
   const hint = await f.$eval("#extractHint", (e) => e.textContent);
   ok("send-summary-to-chat succeeds", /✓|chat/i.test(hint), `(hint="${hint}")`);
 
+  // security: an owner name must never inject HTML into the owner filter
+  await f.evaluate(() => {
+    const el = document.querySelector('.card [data-field="owner"]');
+    if (el) { el.textContent = '<img src=x onerror="window.__xss=1">'; el.dispatchEvent(new Event("input", { bubbles: true })); }
+  });
+  await f.click("#sortBtn"); await sleep(250); // force a re-render → rebuild owner filter
+  const xss = await f.evaluate(() => window.__xss);
+  const injected = await f.$("#ownerFilter img");
+  ok("owner filter does not inject HTML (no XSS)", !xss && !injected);
+
   // Note: cross-reload persistence needs `anna-app dev --storage aps`; the local
   // legacy backend is per-window. The storage.set/get round-trip itself is proven
   // by the e2e suite, and the write path here is covered by "no uncaught JS errors".

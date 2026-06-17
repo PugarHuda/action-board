@@ -1,16 +1,27 @@
 {
   "schema": 2,
   "required_executas": [
-    { "tool_id": "tool-dev-action-triage", "version": "latest" }
+    {
+      "tool_id": "tool-dev-action-triage",
+      "version": "latest"
+    }
   ],
-  "host_capabilities": ["llm.sample"],
+  "host_capabilities": [
+    "llm.sample"
+  ],
   "permissions": [
     "Read the meeting notes you paste into the app",
     "Use AI to turn them into action items",
     "Save your action board so it persists across sessions",
     "Post a summary back into the conversation when you ask"
   ],
-  "tags": ["productivity", "meetings", "tasks", "ai", "workflow"],
+  "tags": [
+    "productivity",
+    "meetings",
+    "tasks",
+    "ai",
+    "workflow"
+  ],
   "system_prompt_addendum": "This conversation has the Action Board app. When the user shares meeting notes, a brain-dump, or asks to extract tasks/action items, open the 'board' view with open_app_view(view='board', payload={ notes: <the raw text> }). The app itself extracts structured action items (task, owner, deadline, priority) from the notes using the action-triage tool, shows them as editable cards the user can approve and drag, and persists them. Do not try to reformat the notes yourself first — pass the raw text through so the user keeps a clean human-in-the-loop review step inside the app.",
   "user_message_prefix_template": "",
   "ui": {
@@ -23,8 +34,14 @@
         "name": "board",
         "title": "Action Board",
         "default": true,
-        "default_size": { "w": 980, "h": 700 },
-        "min_size": { "w": 520, "h": 440 },
+        "default_size": {
+          "w": 980,
+          "h": 700
+        },
+        "min_size": {
+          "w": 520,
+          "h": 440
+        },
         "icon": "icon.svg",
         "resizable": true,
         "movable": true,
@@ -32,14 +49,26 @@
       }
     ],
     "host_api": {
-      "storage": ["get", "set", "delete", "list"],
-      "tools": ["required:*"],
-      "chat": ["append_artifact", "write_message"]
+      "storage": [
+        "get",
+        "set"
+      ],
+      "tools": [
+        "required:*"
+      ],
+      "chat": [
+        "append_artifact",
+        "write_message"
+      ]
     }
   },
   "dev": {
     "executas": [
-      { "tool_id": "tool-dev-action-triage", "dir": "./executas/triage-node", "type": "node" }
+      {
+        "tool_id": "tool-dev-action-triage",
+        "dir": "./executas/triage-node",
+        "type": "node"
+      }
     ]
   }
 }

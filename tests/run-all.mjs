@@ -15,6 +15,7 @@ const SUITES = [
   ["i18n (unit)", "i18n.test.mjs"],
   ["executa stdio contract", "replay.mjs"],
   ["sampling / mock-host", "mock-host.test.mjs"],
+  ["python flavour parity (auto-skips if no Python)", "python-parity.mjs"],
   ["harness E2E (auto-skips if down)", "e2e-harness.test.mjs"],
   ["UI smoke — browser (auto-skips if no harness/Chrome)", "ui-smoke.mjs"],
 ];

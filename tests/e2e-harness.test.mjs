@@ -48,7 +48,7 @@ const board = [
   { id: "a2", task: "Fix the login bug", owner: "Tom", deadline: "tomorrow", priority: "medium", status: "done", approved: true },
 ];
 
-// --- storage round-trip ---
+// --- storage round-trip (app grants only get + set; least privilege) ---
 const setRes = await call("storage", "set", { key: KEY, value: board });
 ok("storage.set ok", setRes.ok === true, JSON.stringify(setRes));
 
@@ -57,8 +57,9 @@ ok("storage.get returns the board", getRes.ok && Array.isArray(getRes.result?.va
 ok("storage.get preserves item fields",
   getRes.result?.value?.[0]?.task === "Send the deck" && getRes.result?.value?.[1]?.approved === true);
 
+// ACL enforcement: methods NOT granted in manifest.ui.host_api.storage are denied.
 const listRes = await call("storage", "list", { prefix: "test.board." });
-ok("storage.list includes our key", listRes.ok && listRes.result?.items?.some((i) => i.key === KEY));
+ok("storage.list DENIED (not granted — least privilege)", listRes.ok === false && listRes.error?.code === "permission_denied", JSON.stringify(listRes));
 
 // --- chat write-back ---
 const art = await call("chat", "append_artifact", {
@@ -87,13 +88,9 @@ ok("tools.invoke behaves as expected (impl OR documented not_implemented)",
 if (inv.ok) console.log("    note: tools.invoke is NOW implemented in this harness — UI tool path is fully live.");
 else console.log("    note: tools.invoke not_implemented (expected on MVP harness) — UI uses in-browser parser locally.");
 
-// --- cleanup ---
+// storage.delete is also not granted → must be denied (least privilege).
 const del = await call("storage", "delete", { key: KEY });
-ok("storage.delete ok", del.ok === true);
-const after = await call("storage", "get", { key: KEY });
-ok("deleted key no longer returns a value",
-  !after.result?.value || (Array.isArray(after.result.value) ? false : true) || after.result?.exists === false,
-  JSON.stringify(after.result));
+ok("storage.delete DENIED (not granted — least privilege)", del.ok === false && del.error?.code === "permission_denied", JSON.stringify(del));
 
 console.log(`\n${passed} passed, ${failed} failed`);
 // Set exit code but DON'T call process.exit(): on Windows, exiting while undici

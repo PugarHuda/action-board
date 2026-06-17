@@ -37,6 +37,13 @@ All notable changes to Action Board. Pre-release; dates are when work landed.
 - **Tests**: 7 suites, **168 assertions** (parser, board, i18n, contract, sampling,
   e2e, and a puppeteer **browser smoke test** that drives the real `app.js`).
 
+### Security
+- **Fixed an XSS vector**: the owner filter interpolated owner names (which the LLM can
+  produce) into `innerHTML`; now built via `createElement`/`textContent`. Regression-tested.
+- **Tightened `ui.host_api.storage` to `["get","set"]`** (least privilege — the only
+  methods the app uses); verified the harness **denies** `storage.list/delete`.
+- Added `SECURITY.md` (trust boundaries + findings) and a `python-parity` test suite.
+
 ### Fixed (found during QA)
 - **`window.set_title` called with a bare string** instead of `{ title }` — the host
   bridge does `args.get("title")` and crashed (`'str' has no attribute 'get'`); the

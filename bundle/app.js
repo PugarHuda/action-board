@@ -178,8 +178,18 @@ function syncOwnerFilter() {
   if (!sel) return;
   const owners = ownersOf(items);
   const current = view.owner;
-  sel.innerHTML = `<option value="">${tr("everyone")}</option>` +
-    owners.map((o) => `<option value="${o}">${o}</option>`).join("");
+  // Build options via the DOM (textContent) — never string-interpolate owner
+  // names into HTML. Owners can originate from the LLM and must not be able to
+  // inject markup into the filter.
+  sel.replaceChildren();
+  const mk = (value, label) => {
+    const o = document.createElement("option");
+    o.value = value;
+    o.textContent = label;
+    return o;
+  };
+  sel.appendChild(mk("", tr("everyone")));
+  for (const o of owners) sel.appendChild(mk(o, o));
   // keep selection if that owner still exists, else reset to all
   sel.value = owners.includes(current) ? current : "";
   if (sel.value !== current) view.owner = sel.value;

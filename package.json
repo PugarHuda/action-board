@@ -13,6 +13,7 @@
     "test:sampling": "node tests/mock-host.test.mjs",
     "test:e2e": "node tests/e2e-harness.test.mjs",
     "test:ui": "node tests/ui-smoke.mjs",
+    "test:py": "node tests/python-parity.mjs",
     "dev": "anna-app dev --no-llm",
     "validate": "anna-app validate --strict",
     "shots": "node scripts/capture-shots.mjs"
