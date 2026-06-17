@@ -22,6 +22,9 @@ jobs:
       - name: Install Anna CLI
         run: npm i -g @anna-ai/cli
 
+      - name: Install dev deps (puppeteer-core etc.)
+        run: npm ci || npm install
+
       - name: Validate manifest + bundle (strict)
         run: anna-app validate --strict
 
@@ -48,6 +51,9 @@ jobs:
           done
           npm run test:e2e
           rc=$?
+          # Browser smoke test of the real app.js (Chrome is preinstalled on the
+          # runner; puppeteer-core via npm ci). Auto-skips if Chrome is absent.
+          CHROME=/usr/bin/google-chrome npm run test:ui || rc=$?
           cat /tmp/harness.log || true
           # Stop the harness + its uv/Python bridge so setup-uv's post-job cache
           # cleanup can acquire the lock (otherwise the job fails in post-cleanup).

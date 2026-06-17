@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/PugarHuda/action-board/actions/workflows/ci.yml/badge.svg)](https://github.com/PugarHuda/action-board/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-![tests](https://img.shields.io/badge/tests-157%20passing-brightgreen)
+![tests](https://img.shields.io/badge/tests-168%20passing-brightgreen)
 ![lang](https://img.shields.io/badge/i18n-EN%20%2F%20ID-blueviolet)
 
 **Paste messy meeting notes → get a structured action board you actually trust.**
@@ -100,14 +100,15 @@ action-board/
 │   └── triage-python/       # Same contract, Python flavour (publish-ready)
 │       ├── plugin.py
 │       └── pyproject.toml
-├── tests/                   # 6 suites, 157 assertions, plain Node (no deps)
+├── tests/                   # 7 suites, 168 assertions, plain Node (no deps)
 │   ├── run-all.mjs          # aggregate runner (npm test)
 │   ├── parser.test.mjs
 │   ├── board.test.mjs       # pure board logic
 │   ├── i18n.test.mjs        # EN/ID dictionary
 │   ├── replay.mjs           # stdio contract
 │   ├── mock-host.test.mjs   # LLM / sampling path
-│   └── e2e-harness.test.mjs # live harness lifecycle
+│   ├── e2e-harness.test.mjs # live harness lifecycle
+│   └── ui-smoke.mjs         # real browser drive of app.js (puppeteer)
 ├── fixtures/
 │   └── sample-notes.txt     # demo input
 └── README.md
@@ -150,7 +151,7 @@ anna-app validate --strict   # ✓ passes (schema + UI ACL + bundle linter)
 - ✅ **AI/sampling path** verified through the real executa runtime:
   `anna-app executa dev --invoke extract_actions --mock-sampling fixtures/mock-sampling.jsonl`
   returns `"source":"llm"` with model-parsed items (and `--no-sampling` → `"heuristic"`)
-- ✅ `npm test` → **157/157 assertions** across 6 suites
+- ✅ `npm test` → **168/168 assertions** across 7 suites
 - ⚠️ `tools.invoke` returns `not_implemented` in this MVP harness version → the UI uses
   its in-browser parser locally (see Resilience above). On the real platform `tools.invoke`
   routes to the Executa tool's AI path (verified via `executa dev` above).
@@ -170,7 +171,7 @@ anna-app validate --strict   # ✓ passes (schema + UI ACL + bundle linter)
 
 ## Tests / QA
 
-Six suites, **157 assertions, all green**. No test framework — plain Node, zero deps.
+Seven suites, **168 assertions, all green**. No test framework — plain Node, zero deps.
 
 ```bash
 npm test            # runs all suites (E2E auto-skips if no harness is up)
@@ -180,6 +181,7 @@ npm run test:i18n       # 15 — EN/ID dictionary: key parity, interpolation, fa
 npm run test:contract   # 15 — Executa JSON-RPC stdio contract (describe/invoke/errors)
 npm run test:sampling   # 18 — mock-host drives the tool's LLM/sampling path + fallbacks
 npm run test:e2e        # 12 — live harness: storage/chat/window/tools.list lifecycle
+npm run test:ui         # 11 — real browser drives app.js (extract/theme/lang/quick-add)
 ```
 
 What each suite proves:
@@ -192,6 +194,7 @@ What each suite proves:
 | **contract** | `tests/replay.mjs` | spawns the real plugin over stdio; `describe` returns a bare manifest; `invoke` succeeds; unknown method → `-32601`; empty notes don't crash |
 | **sampling** | `tests/mock-host.test.mjs` | acts as the Anna host and answers the plugin's `sampling/createMessage` reverse-RPC — real `{type:text}` shape + string/array shapes, ```json fences, garbage→heuristic, error→heuristic, malformed-item normalization, `invoke_id` echo |
 | **e2e** | `tests/e2e-harness.test.mjs` | against a running `anna-app dev`: real `storage.set/get/list/delete`, `chat.append_artifact/write_message`, `window.set_title`, `tools.list` |
+| **ui-smoke** | `tests/ui-smoke.mjs` | drives the real `app.js` in headless Chrome (puppeteer): SDK connects, extract renders cards, theme/lang toggles, quick-add, source badges, chat write-back, **zero uncaught JS errors** |
 
 ### Test the tool directly (no harness)
 ```bash

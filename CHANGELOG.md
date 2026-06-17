@@ -34,10 +34,14 @@ All notable changes to Action Board. Pre-release; dates are when work landed.
   mock-sampling AI check + live-harness E2E); demo fixtures; `preview.html` +
   `scripts/capture-shots.mjs` to generate screenshots and `docs/demo.gif`.
 - **Docs**: README, ARCHITECTURE, DEMO (video script), PUBLISH, SUBMISSION.
-- **Tests**: 6 plain-Node suites, **157 assertions** (parser, board, i18n, contract,
-  sampling, e2e).
+- **Tests**: 7 suites, **168 assertions** (parser, board, i18n, contract, sampling,
+  e2e, and a puppeteer **browser smoke test** that drives the real `app.js`).
 
 ### Fixed (found during QA)
+- **`window.set_title` called with a bare string** instead of `{ title }` — the host
+  bridge does `args.get("title")` and crashed (`'str' has no attribute 'get'`); the
+  async rejection escaped the sync `try/catch`. Caught by the new browser smoke test.
+  Now passes `{ title }` and swallows the promise.
 - **Sampling wire shape**: send `messages[].content` as `{type:"text",text}` and read
   the reply from `result.content.text` (matches the real host) — previously used a
   plain string and would have silently fallen back to heuristic against live Anna.

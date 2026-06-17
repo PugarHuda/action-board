@@ -16,6 +16,7 @@ const SUITES = [
   ["executa stdio contract", "replay.mjs"],
   ["sampling / mock-host", "mock-host.test.mjs"],
   ["harness E2E (auto-skips if down)", "e2e-harness.test.mjs"],
+  ["UI smoke — browser (auto-skips if no harness/Chrome)", "ui-smoke.mjs"],
 ];
 
 function run(file) {

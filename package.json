@@ -12,6 +12,7 @@
     "test:contract": "node tests/replay.mjs",
     "test:sampling": "node tests/mock-host.test.mjs",
     "test:e2e": "node tests/e2e-harness.test.mjs",
+    "test:ui": "node tests/ui-smoke.mjs",
     "dev": "anna-app dev --no-llm",
     "validate": "anna-app validate --strict",
     "shots": "node scripts/capture-shots.mjs"
@@ -21,6 +22,7 @@
   },
   "devDependencies": {
     "gifenc": "^1.0.3",
-    "pngjs": "^7.0.0"
+    "pngjs": "^7.0.0",
+    "puppeteer-core": "^25.1.0"
   }
 }

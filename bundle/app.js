@@ -196,8 +196,11 @@ function moveItem(id, status) {
 }
 
 function updateTitle(counts) {
+  // Host API expects an object ({ title }), and the call is async — swallow both
+  // sync throws and promise rejections so a title hiccup never breaks the board.
   try {
-    anna.window.set_title(`Action Board · ${counts.open} open · ${counts.done} done`);
+    const r = anna.window.set_title({ title: `Action Board · ${counts.open} open · ${counts.done} done` });
+    if (r && typeof r.catch === "function") r.catch(() => {});
   } catch (_) {}
 }
 
