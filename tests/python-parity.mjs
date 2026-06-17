@@ -16,11 +16,20 @@ import process from "node:process";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PLUGIN = join(__dirname, "..", "executas", "triage-python", "plugin.py");
 
+function runs(cmd) {
+  try { return spawnSync(cmd, ["--version"], { encoding: "utf8" }).status === 0; } catch { return false; }
+}
 function findPython() {
   if (process.env.PYTHON) return process.env.PYTHON;
   for (const c of ["python3", "python", "py"]) {
-    try { const r = spawnSync(c, ["--version"], { encoding: "utf8" }); if (r.status === 0) return c; } catch {}
+    if (runs(c)) return c;
   }
+  // Fall back to a uv-managed CPython (common on machines without a system Python).
+  try {
+    const r = spawnSync("uv", ["python", "find"], { encoding: "utf8" });
+    const path = (r.stdout || "").trim().split(/\r?\n/)[0];
+    if (r.status === 0 && path && runs(path)) return path;
+  } catch {}
   return null;
 }
 const PY = findPython();
