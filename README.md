@@ -14,7 +14,7 @@ functional app — AI extraction, storage, chat — runs inside Anna via `anna-a
 ![Action Board demo](docs/demo.gif)
 
 > _Extract → review/approve → organize across To Do / In Progress / Done._
-> Static shots: [full board](docs/screenshot.png) · [light theme](docs/screenshot-light.png) · [empty state](docs/screenshot-empty.png) · [filtered by owner](docs/screenshot-filtered.png) · [mobile](docs/screenshot-mobile.png)
+> Static shots: [full board](docs/screenshot.png) · [dark theme](docs/screenshot-dark.png) · [empty state](docs/screenshot-empty.png) · [filtered by owner](docs/screenshot-filtered.png) · [mobile](docs/screenshot-mobile.png)
 
 Action Board turns a raw brain-dump or meeting transcript into editable action-item
 cards (**task · owner · deadline · priority**) that you approve and drag across

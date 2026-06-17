@@ -25,7 +25,7 @@ let anna = null;
 let items = []; // [{ id, task, owner, deadline, priority, status, approved, source }]
 let view = { owner: "", sort: "none" }; // filter + sort state
 let lang = "en";
-let theme = "dark";
+let theme = "light";
 const tr = (key, vars) => t(lang, key, vars); // shorthand
 
 // ---- id helper (browser runtime; Date/Math allowed here) -------------------
